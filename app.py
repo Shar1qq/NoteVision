@@ -21,20 +21,17 @@ st.markdown("""
 <style>
     /* Main container styling */
     .main {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
+        background-color: #1a202c;
     }
     
     /* Card-like containers */
     .stApp {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        background: #1a202c;
     }
     
     /* Header styling */
     h1 {
-        color: #1a202c;
+        color: #f7fafc;
         font-weight: 800;
         font-size: 2.2rem !important; /* Reduced from 3rem */
         margin-bottom: 0.5rem;
@@ -45,29 +42,29 @@ st.markdown("""
     }
     
     h2 {
-        color: #2d3748;
+        color: #e2e8f0;
         font-weight: 600;
         font-size: 1.3rem !important; /* Reduced from 1.5rem */
         margin-top: 1.2rem;
     }
     
     h3 {
-        color: #4a5568;
+        color: #cbd5e0;
         font-weight: 600;
         font-size: 1.1rem !important; /* Reduced from 1.2rem */
     }
     
     /* Subtitle styling */
     .subtitle {
-        color: #718096;
+        color: #a0aec0;
         font-size: 1.1rem;
         margin-bottom: 2rem;
     }
     
     /* File uploader styling */
     .stFileUploader {
-        background: #f7fafc;
-        border: 2px dashed #cbd5e0;
+        background: #2d3748;
+        border: 2px dashed #4a5568;
         border-radius: 12px;
         padding: 2rem;
         transition: all 0.3s ease;
@@ -75,7 +72,7 @@ st.markdown("""
     
     .stFileUploader:hover {
         border-color: #667eea;
-        background: #edf2f7;
+        background: #2d3748;
     }
     
     /* Button styling */
@@ -88,7 +85,7 @@ st.markdown("""
         font-weight: 600;
         font-size: 1rem;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
     
     .stButton > button:hover {
@@ -98,7 +95,7 @@ st.markdown("""
     
     /* Download button styling */
     .stDownloadButton > button {
-        background: white;
+        background: #2d3748;
         color: #667eea;
         border: 2px solid #667eea;
         border-radius: 10px;
@@ -115,52 +112,58 @@ st.markdown("""
     
     /* Sidebar styling */
     .css-1d391kg, [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+        background-color: #2d3748;
+        border-right: 1px solid #4a5568;
     }
     
     /* Info box styling */
     .stInfo {
-        background: #e6f2ff;
+        background: #2c3e50;
         border-left: 4px solid #667eea;
         border-radius: 8px;
         padding: 1rem;
+        color: #e2e8f0;
     }
     
     /* Success message styling */
     .stSuccess {
-        background: #d4edda;
+        background: #1e3a27;
         border-left: 4px solid #28a745;
         border-radius: 8px;
+        color: #e2e8f0;
     }
     
     /* Warning message styling */
     .stWarning {
-        background: #fff3cd;
+        background: #4a3b1a;
         border-left: 4px solid #ffc107;
         border-radius: 8px;
+        color: #e2e8f0;
     }
     
     /* Error message styling */
     .stError {
-        background: #f8d7da;
+        background: #4a1c1c;
         border-left: 4px solid #dc3545;
         border-radius: 8px;
+        color: #e2e8f0;
     }
     
     /* Image container */
     .stImage {
         border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     
     /* Markdown output container */
     .markdown-output {
-        background: #f8f9fa;
+        background: #2d3748;
         border-radius: 12px;
         padding: 1.5rem;
-        border: 1px solid #e9ecef;
+        border: 1px solid #4a5568;
         max-height: 600px;
         overflow-y: auto;
+        color: #e2e8f0;
     }
     
     /* Spinner styling */
@@ -173,7 +176,7 @@ st.markdown("""
         margin: 2rem 0;
         border: none;
         height: 1px;
-        background: linear-gradient(90deg, transparent, #cbd5e0, transparent);
+        background: linear-gradient(90deg, transparent, #4a5568, transparent);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -385,7 +388,7 @@ if uploaded_file is not None:
     
     # Display image in expander (hidden by default to save space)
     with st.expander("📸 View Original Image", expanded=False):
-        st.image(image, use_container_width=True)
+        st.image(image, use_column_width=True)
     
     # Convert button area
     col_btn, col_blank = st.columns([1, 2])
@@ -417,8 +420,8 @@ if uploaded_file is not None:
         
         # Create a styled container for markdown output
         st.markdown("""
-        <div style='background: #f8f9fa; border-radius: 12px; padding: 2rem; 
-                    border: 2px solid #e9ecef;'>
+        <div style='background: #2d3748; border-radius: 12px; padding: 2rem; 
+                    border: 2px solid #4a5568;' class='markdown-output'>
         """, unsafe_allow_html=True)
         
         st.markdown(st.session_state.markdown_output)
