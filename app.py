@@ -1,477 +1,600 @@
+"""
+NoteVision – Phase 2 Agentic Application
+==========================================
+Transforms Phase 1 (static convert-on-click tool) into a fully agentic system:
+  Perceive → Assess → Plan → Convert → Critique → Refine → Deliver
+
+UI layers:
+  - Agent Activity Log   : real-time step-by-step transparency
+  - Assessment Panel     : what the agent perceived
+  - Strategy Badge       : which tool the agent chose and why
+  - Critique Panel       : self-review output
+  - Confidence Meter     : agent certainty score
+  - Human-in-the-Loop    : user can accept, reject, or request another pass
+  - Memory Dashboard     : session + history stats
+"""
+
 import streamlit as st
 from google import genai
-from google.genai import types
-from PIL import Image
 from docx import Document
-from docx.shared import Pt, RGBColor
+from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import io
-import time
 
-# Page configuration
+from agent import AgentMemory, NoteVisionAgent
+from PIL import Image
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Page Config
+# ─────────────────────────────────────────────────────────────────────────────
+
 st.set_page_config(
-    page_title="NoteVision - AI Notes Converter",
-    page_icon="📝",
+    page_title="NoteVision Agent – Phase 2",
+    page_icon="🤖",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# Custom CSS for modern, professional UI
+# ─────────────────────────────────────────────────────────────────────────────
+# Styling
+# ─────────────────────────────────────────────────────────────────────────────
+
 st.markdown("""
 <style>
-    /* Main container styling */
-    .main {
-        background-color: #1a202c;
-    }
-    
-    /* Card-like containers */
-    .stApp {
-        background: #1a202c;
-    }
-    
-    /* Header styling */
-    h1 {
-        color: #f7fafc;
-        font-weight: 800;
-        font-size: 2.2rem !important; /* Reduced from 3rem */
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    h2 {
-        color: #e2e8f0;
-        font-weight: 600;
-        font-size: 1.3rem !important; /* Reduced from 1.5rem */
-        margin-top: 1.2rem;
-    }
-    
-    h3 {
-        color: #cbd5e0;
-        font-weight: 600;
-        font-size: 1.1rem !important; /* Reduced from 1.2rem */
-    }
-    
-    /* Subtitle styling */
-    .subtitle {
-        color: #a0aec0;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-    }
-    
-    /* File uploader styling */
-    .stFileUploader {
-        background: #2d3748;
-        border: 2px dashed #4a5568;
-        border-radius: 12px;
-        padding: 2rem;
-        transition: all 0.3s ease;
-    }
-    
-    .stFileUploader:hover {
-        border-color: #667eea;
-        background: #2d3748;
-    }
-    
-    /* Button styling */
-    .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-    }
-    
-    /* Download button styling */
-    .stDownloadButton > button {
-        background: #2d3748;
-        color: #667eea;
-        border: 2px solid #667eea;
-        border-radius: 10px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .stDownloadButton > button:hover {
-        background: #667eea;
-        color: white;
-        transform: translateY(-2px);
-    }
-    
-    /* Sidebar styling */
-    .css-1d391kg, [data-testid="stSidebar"] {
-        background-color: #2d3748;
-        border-right: 1px solid #4a5568;
-    }
-    
-    /* Info box styling */
-    .stInfo {
-        background: #2c3e50;
-        border-left: 4px solid #667eea;
-        border-radius: 8px;
-        padding: 1rem;
-        color: #e2e8f0;
-    }
-    
-    /* Success message styling */
-    .stSuccess {
-        background: #1e3a27;
-        border-left: 4px solid #28a745;
-        border-radius: 8px;
-        color: #e2e8f0;
-    }
-    
-    /* Warning message styling */
-    .stWarning {
-        background: #4a3b1a;
-        border-left: 4px solid #ffc107;
-        border-radius: 8px;
-        color: #e2e8f0;
-    }
-    
-    /* Error message styling */
-    .stError {
-        background: #4a1c1c;
-        border-left: 4px solid #dc3545;
-        border-radius: 8px;
-        color: #e2e8f0;
-    }
-    
-    /* Image container */
-    .stImage {
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    
-    /* Markdown output container */
-    .markdown-output {
-        background: #2d3748;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #4a5568;
-        max-height: 600px;
-        overflow-y: auto;
-        color: #e2e8f0;
-    }
-    
-    /* Spinner styling */
-    .stSpinner > div {
-        border-color: #667eea !important;
-    }
-    
-    /* Divider */
-    hr {
-        margin: 2rem 0;
-        border: none;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #4a5568, transparent);
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+
+  .stApp { background: #0f1117; }
+
+  /* ── Header ── */
+  .nv-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .nv-header h1 {
+    color: white !important;
+    font-size: 2rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    -webkit-text-fill-color: white !important;
+  }
+  .nv-header p { color: rgba(255,255,255,0.85); margin: 0.4rem 0 0 0; font-size: 1rem; }
+
+  /* ── Cards ── */
+  .nv-card {
+    background: #1e2130;
+    border: 1px solid #2d3250;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .nv-card-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #667eea;
+    margin-bottom: 0.6rem;
+  }
+
+  /* ── Agent log ── */
+  .agent-log {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: #8b949e;
+    max-height: 220px;
+    overflow-y: auto;
+    line-height: 1.7;
+  }
+  .agent-log .step { color: #58a6ff; }
+  .agent-log .ok   { color: #3fb950; }
+  .agent-log .warn { color: #d29922; }
+
+  /* ── Strategy badge ── */
+  .strategy-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea22, #764ba222);
+    border: 1px solid #667eea55;
+    color: #a5b4fc;
+    border-radius: 20px;
+    padding: 0.3rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  /* ── Confidence meter ── */
+  .conf-bar-wrap {
+    background: #0d1117;
+    border-radius: 8px;
+    height: 10px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+  .conf-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.4s ease;
+  }
+
+  /* ── Buttons ── */
+  .stButton > button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+  }
+  .stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.55);
+  }
+  .stDownloadButton > button {
+    background: #1e2130;
+    color: #667eea;
+    border: 1.5px solid #667eea;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .stDownloadButton > button:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  /* ── Sidebar ── */
+  [data-testid="stSidebar"] { background: #161b27; border-right: 1px solid #2d3250; }
+
+  /* ── Tabs ── */
+  .stTabs [data-baseweb="tab-list"] {
+    background: #1e2130;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .stTabs [data-baseweb="tab"] {
+    background: transparent;
+    border-radius: 8px;
+    color: #8892b0;
+    font-weight: 500;
+    font-size: 0.85rem;
+  }
+  .stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    color: white !important;
+  }
+
+  /* ── Assessment grid ── */
+  .assess-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .assess-item {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 0.6rem 0.9rem;
+    text-align: center;
+  }
+  .assess-label { font-size: 0.7rem; color: #6e7b8b; text-transform: uppercase; letter-spacing: 0.06em; }
+  .assess-value { font-size: 1rem; font-weight: 700; color: #e2e8f0; margin-top: 2px; }
+
+  /* ── History item ── */
+  .hist-item {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+    color: #8b949e;
+  }
+
+  /* ── HITL controls ── */
+  .hitl-banner {
+    background: linear-gradient(135deg, #1a2a1a, #1e2a1e);
+    border: 1.5px solid #2ea04388;
+    border-radius: 10px;
+    padding: 1rem 1.3rem;
+    margin: 0.75rem 0;
+  }
+  .hitl-title { color: #3fb950; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.3rem; }
+  .hitl-desc  { color: #8b949e; font-size: 0.82rem; }
+
+  hr { border: none; border-top: 1px solid #2d3250; margin: 1.2rem 0; }
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state for rate limiting
-if 'conversion_count' not in st.session_state:
+# ─────────────────────────────────────────────────────────────────────────────
+# Rate Limiting
+# ─────────────────────────────────────────────────────────────────────────────
+
+MAX_PER_SESSION = 20
+COOLDOWN = 10
+
+if "conversion_count" not in st.session_state:
     st.session_state.conversion_count = 0
-if 'last_conversion_time' not in st.session_state:
-    st.session_state.last_conversion_time = 0
+if "last_time" not in st.session_state:
+    st.session_state.last_time = 0
+if "agent_result" not in st.session_state:
+    st.session_state.agent_result = None
+if "hitl_accepted" not in st.session_state:
+    st.session_state.hitl_accepted = None   # None | True | False
 
-# Rate limiting configuration
-MAX_CONVERSIONS_PER_SESSION = 20
-COOLDOWN_SECONDS = 10
+# ─────────────────────────────────────────────────────────────────────────────
+# API + Agent init
+# ─────────────────────────────────────────────────────────────────────────────
 
-# Configure Gemini API
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-    client = genai.Client(api_key=GEMINI_API_KEY)
-except Exception as e:
-    st.error("⚠️ API Key not configured. Please set up GEMINI_API_KEY in Streamlit secrets.")
+    gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+except Exception:
+    st.error("⚠️ API Key not configured. Add GEMINI_API_KEY to Streamlit secrets.")
     st.stop()
 
-# System prompt for Gemini
-SYSTEM_PROMPT = """You are an OCR and document-structuring assistant.
+memory = AgentMemory(st.session_state)
+agent = NoteVisionAgent(gemini_client, memory)
 
-Convert this handwritten university note image into a clean, well-structured Markdown document.
-
-Rules:
-- Preserve headings, subheadings, and bullet points
-- Preserve arrows, boxes, and emphasis
-- Convert all mathematical expressions into valid LaTeX (use $ for inline math and $$ for block math)
-- Do NOT summarize or paraphrase
-- Maintain original academic wording
-- If something is unclear, make a best-effort guess and mark it with (?)
-
-Output only Markdown."""
-
-def convert_markdown_to_docx(markdown_text):
-    """Convert markdown text to a DOCX file"""
-    doc = Document()
-    
-    # Add title
-    title = doc.add_paragraph("Converted Notes")
-    title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-    title_format = title.runs[0]
-    title_format.font.size = Pt(18)
-    title_format.font.bold = True
-    
-    doc.add_paragraph()  # Spacing
-    
-    # Add the content
-    # Simple processing - split by lines and handle basic markdown
-    lines = markdown_text.split('\n')
-    
-    for line in lines:
-        if line.strip():
-            # Handle headings
-            if line.startswith('# '):
-                p = doc.add_paragraph(line.replace('# ', ''))
-                p.runs[0].font.size = Pt(16)
-                p.runs[0].font.bold = True
-            elif line.startswith('## '):
-                p = doc.add_paragraph(line.replace('## ', ''))
-                p.runs[0].font.size = Pt(14)
-                p.runs[0].font.bold = True
-            elif line.startswith('### '):
-                p = doc.add_paragraph(line.replace('### ', ''))
-                p.runs[0].font.size = Pt(12)
-                p.runs[0].font.bold = True
-            # Handle bullet points
-            elif line.strip().startswith('-') or line.strip().startswith('*'):
-                p = doc.add_paragraph(line.strip()[1:].strip(), style='List Bullet')
-            else:
-                # Regular paragraph
-                p = doc.add_paragraph(line)
-    
-    return doc
-
-def process_image_with_gemini(image):
-    """Process image using Gemini Vision API with retry logic"""
-    max_retries = 3
-    retry_delay = 2  # seconds
-    
-    for attempt in range(max_retries):
-        try:
-            # Convert PIL Image to bytes
-            img_byte_arr = io.BytesIO()
-            image.save(img_byte_arr, format='PNG')
-            img_byte_arr.seek(0)
-            
-            # Generate content using new API
-            response = client.models.generate_content(
-                model='models/gemini-2.0-flash',
-                contents=[
-                    SYSTEM_PROMPT,
-                    types.Part.from_bytes(
-                        data=img_byte_arr.read(),
-                        mime_type='image/png'
-                    )
-                ]
-            )
-            
-            text = response.text
-            
-            # Clean up markdown code blocks if present
-            if text.startswith("```"):
-                lines = text.split('\n')
-                # Remove first line if it starts with ```
-                if lines[0].startswith("```"):
-                    lines = lines[1:]
-                # Remove last line if it starts with ```
-                if lines and lines[-1].strip().startswith("```"):
-                    lines = lines[:-1]
-                text = "\n".join(lines)
-            
-            return text
-        
-        except Exception as e:
-            error_msg = str(e)
-            
-            # Check if it's a rate limit error
-            if '429' in error_msg or 'RESOURCE_EXHAUSTED' in error_msg:
-                if attempt < max_retries - 1:
-                    wait_time = retry_delay * (2 ** attempt)  # Exponential backoff
-                    st.warning(f"⏳ Rate limit reached. Retrying in {wait_time} seconds... (Attempt {attempt + 1}/{max_retries})")
-                    time.sleep(wait_time)
-                    continue
-                else:
-                    st.error("⚠️ **API Rate Limit Exceeded**\n\nPlease wait 1-2 minutes and try again. The free tier has limited requests per minute.")
-                    return None
-            
-            # Check if it's an overload error
-            elif '503' in error_msg or 'UNAVAILABLE' in error_msg:
-                if attempt < max_retries - 1:
-                    wait_time = retry_delay * (2 ** attempt)
-                    st.warning(f"⏳ Model is busy. Retrying in {wait_time} seconds... (Attempt {attempt + 1}/{max_retries})")
-                    time.sleep(wait_time)
-                    continue
-                else:
-                    st.error("The AI model is currently overloaded. Please try again in a minute.")
-                    return None
-            
-            # Other errors
-            else:
-                st.error(f"Error processing image: {error_msg}")
-                return None
-    
-    return None
-
-# Main UI
-st.markdown("<h1>📝 NoteVision</h1>", unsafe_allow_html=True)
-st.markdown("<p class='subtitle'>Transform handwritten notes into editable documents with AI</p>", unsafe_allow_html=True)
+# ─────────────────────────────────────────────────────────────────────────────
+# Header
+# ─────────────────────────────────────────────────────────────────────────────
 
 st.markdown("""
-<div style='background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%); 
-            border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;'>
-    <p style='margin: 0; color: #4a5568; font-size: 1rem;'>
-        ✨ Upload your handwritten university notes (including mathematical formulas) and convert them 
-        into clean, structured, editable documents powered by NoteVision AI.
-    </p>
+<div class="nv-header">
+  <h1>🤖 NoteVision Agent</h1>
+  <p>Phase 2 &nbsp;·&nbsp; Agentic Handwriting Converter &nbsp;·&nbsp;
+     Perceive → Assess → Plan → Convert → Critique → Refine → Deliver</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar with enhanced stats
-st.sidebar.markdown("### 📊 Session Stats")
-st.sidebar.markdown(f"""
-<div style='background: white; padding: 1rem; border-radius: 10px; border: 2px solid #e2e8f0;'>
-    <p style='margin: 0; font-size: 0.9rem; color: #718096;'>Conversions Used</p>
-    <p style='margin: 0; font-size: 2rem; font-weight: bold; color: #667eea;'>
-        {st.session_state.conversion_count}/{MAX_CONVERSIONS_PER_SESSION}
-    </p>
+# ─────────────────────────────────────────────────────────────────────────────
+# Sidebar – Memory Dashboard
+# ─────────────────────────────────────────────────────────────────────────────
+
+with st.sidebar:
+    st.markdown("### 🧠 Agent Memory")
+    st.markdown(f"""
+<div class="nv-card">
+  <div class="nv-card-title">Session Memory</div>
+  <div style="font-size:2rem;font-weight:800;color:#667eea;">
+    {memory.session_conversions()}
+    <span style="font-size:1rem;color:#6e7b8b;">/ {MAX_PER_SESSION}</span>
+  </div>
+  <div style="font-size:0.8rem;color:#6e7b8b;margin-top:4px;">conversions this session</div>
+</div>
+<div class="nv-card">
+  <div class="nv-card-title">Long-term Memory</div>
+  <div style="font-size:1.6rem;font-weight:700;color:#a5b4fc;">
+    {memory.total_conversions()}
+  </div>
+  <div style="font-size:0.8rem;color:#6e7b8b;margin-top:4px;">total conversions ever</div>
 </div>
 """, unsafe_allow_html=True)
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ℹ️ How It Works")
-st.sidebar.markdown("""
-1. **Upload** your handwritten note image
-2. **Convert** using AI vision processing
-3. **Review** the extracted markdown content
-4. **Download** as DOCX or Markdown
-""")
+    st.markdown("---")
+    st.markdown("### ⚙️ Agent Architecture")
+    st.markdown("""
+<div style="font-size:0.82rem;color:#8b949e;line-height:1.9;">
+🔵 <b style="color:#c9d1d9;">Perceive</b> – quality assessment tool<br>
+🔵 <b style="color:#c9d1d9;">Decide</b> &nbsp;– strategy selector (rule-based)<br>
+🔵 <b style="color:#c9d1d9;">Act</b> &nbsp;&nbsp;&nbsp;&nbsp;– Gemini Vision conversion<br>
+🔵 <b style="color:#c9d1d9;">Critique</b> – self-review tool<br>
+🔵 <b style="color:#c9d1d9;">Refine</b> &nbsp;– feedback-based correction<br>
+🟢 <b style="color:#3fb950;">HITL</b> &nbsp;&nbsp;&nbsp;– human approval gate
+</div>
+""", unsafe_allow_html=True)
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### ⚙️ Features")
-st.sidebar.markdown("""
-- ✅ Handwritten text recognition
-- ✅ Mathematical formulas → LaTeX
-- ✅ Structure preservation
-- ✅ Export to DOCX/Markdown
-- ✅ Rate limiting protection
-""")
+    st.markdown("---")
+    # Recent history
+    history = memory.get_history()[-5:]
+    if history:
+        st.markdown("### 📂 Recent History")
+        for h in reversed(history):
+            q = h["assessment"]["quality"]
+            colour = {"good": "#3fb950", "poor": "#f85149", "unclear": "#d29922"}.get(q, "#8b949e")
+            st.markdown(f"""
+<div class="hist-item">
+  <b style="color:#c9d1d9;">{h['filename'][:22]}</b><br>
+  <span style="color:{colour};">●</span> {q} &nbsp;·&nbsp; {h['strategy_used']} &nbsp;·&nbsp;
+  {h['confidence']:.0%} conf<br>
+  <span style="color:#4a5568;">{h['timestamp']}</span>
+</div>
+""", unsafe_allow_html=True)
 
-# Check rate limit
-if st.session_state.conversion_count >= MAX_CONVERSIONS_PER_SESSION:
-    st.error(f"⚠️ You've reached the maximum of {MAX_CONVERSIONS_PER_SESSION} conversions per session. Please refresh the page to start a new session.")
-    st.stop()
+# ─────────────────────────────────────────────────────────────────────────────
+# Main – File Upload
+# ─────────────────────────────────────────────────────────────────────────────
 
-# File uploader
-uploaded_file = st.file_uploader(
-    "Upload your handwritten notes",
-    type=['jpg', 'jpeg', 'png'],
-    help="Upload an image of your handwritten notes"
+uploaded = st.file_uploader(
+    "Upload handwritten notes (JPG / PNG / JPEG)",
+    type=["jpg", "jpeg", "png"],
+    help="The agent will automatically assess quality and choose the best strategy.",
 )
 
-if uploaded_file is not None:
-    # Load image
-    image = Image.open(uploaded_file)
-    
-    # Display image in expander (hidden by default to save space)
-    with st.expander("📸 View Original Image", expanded=False):
-        st.image(image, use_column_width=True)
-    
-    # Convert button area
-    col_btn, col_blank = st.columns([1, 2])
-    with col_btn:
-        convert_button = st.button("🔄 Convert to Editable Text", type="primary", use_container_width=True)
-    
-    if convert_button:
-        # Check cooldown
-        time_since_last = time.time() - st.session_state.last_conversion_time
-        if time_since_last < COOLDOWN_SECONDS:
-            st.warning(f"⏳ Please wait {int(COOLDOWN_SECONDS - time_since_last)} seconds before converting again.")
-        else:
-            with st.spinner("🔍 Analyzing your handwritten notes with AI..."):
-                # Process the image
-                markdown_output = process_image_with_gemini(image)
-                
-                if markdown_output:
-                    # Store in session state
-                    st.session_state.markdown_output = markdown_output
-                    st.session_state.conversion_count += 1
-                    st.session_state.last_conversion_time = time.time()
-                    
-                    st.success("✅ Conversion complete!")
-                    st.rerun()
+if uploaded is not None:
+    image = Image.open(uploaded)
 
-    # Display output if available (Full Width)
-    if 'markdown_output' in st.session_state:
-        st.markdown("### 📄 Extracted Content")
-        
-        # Create a styled container for markdown output
+    col_img, col_info = st.columns([1, 1])
+    with col_img:
+        with st.expander("📸 Original Image", expanded=True):
+            st.image(image, use_column_width=True)
+
+    with col_info:
         st.markdown("""
-        <div style='background: #2d3748; border-radius: 12px; padding: 2rem; 
-                    border: 2px solid #4a5568;' class='markdown-output'>
-        """, unsafe_allow_html=True)
-        
-        st.markdown(st.session_state.markdown_output)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-        st.markdown("")  # Spacing
-        
-        # Download section with improved styling
-        st.markdown("### 💾 Download Options")
-        
-        col_docx, col_md, col_empty = st.columns([1, 1, 2])
-        
-        with col_docx:
-            # Generate DOCX
-            doc = convert_markdown_to_docx(st.session_state.markdown_output)
-            
-            # Save to bytes
-            docx_buffer = io.BytesIO()
-            doc.save(docx_buffer)
-            docx_buffer.seek(0)
-            
-            # Download button
+<div class="nv-card">
+  <div class="nv-card-title">How the Agent Works</div>
+  <div style="font-size:0.85rem;color:#8b949e;line-height:1.9;">
+    1️⃣ <b style="color:#c9d1d9;">Perceive</b> — analyses image quality & content<br>
+    2️⃣ <b style="color:#c9d1d9;">Decide</b> — picks the best conversion strategy<br>
+    3️⃣ <b style="color:#c9d1d9;">Act</b> — converts with strategy-specific prompt<br>
+    4️⃣ <b style="color:#c9d1d9;">Critique</b> — self-reviews its own output<br>
+    5️⃣ <b style="color:#c9d1d9;">Refine</b> — fixes issues found in critique<br>
+    6️⃣ <b style="color:#c9d1d9;">HITL gate</b> — you approve before download
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # ─ Rate-limit check ───────────────────────────────────────────────────────
+    import time as _time
+    if st.session_state.conversion_count >= MAX_PER_SESSION:
+        st.error(f"Session limit reached ({MAX_PER_SESSION} conversions). Refresh to start a new session.")
+        st.stop()
+
+    col_btn, _ = st.columns([1, 3])
+    with col_btn:
+        run_agent = st.button("🚀 Run Agent", type="primary", use_container_width=True)
+
+    if run_agent:
+        elapsed = _time.time() - st.session_state.last_time
+        if elapsed < COOLDOWN:
+            st.warning(f"⏳ Cooldown: please wait {int(COOLDOWN - elapsed)}s before the next run.")
+        else:
+            # Reset HITL state for new run
+            st.session_state.hitl_accepted = None
+            st.session_state.agent_result = None
+
+            log_lines = []
+
+            # Live agent log container
+            st.markdown("#### 🔄 Agent Activity")
+            log_placeholder = st.empty()
+
+            def _update_log(msg: str):
+                log_lines.append(msg)
+                coloured = []
+                for line in log_lines:
+                    cls = "ok" if "✅" in line else "warn" if "⏳" in line or "⚠️" in line else "step"
+                    coloured.append(f'<span class="{cls}">{line}</span>')
+                log_placeholder.markdown(
+                    f'<div class="agent-log">{"<br>".join(coloured)}</div>',
+                    unsafe_allow_html=True,
+                )
+
+            with st.spinner("Agent running…"):
+                try:
+                    result = agent.run(image, uploaded.name, log_callback=_update_log)
+                    st.session_state.agent_result = result
+                    st.session_state.conversion_count += 1
+                    st.session_state.last_time = _time.time()
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Agent failed: {e}")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Results Panel (after agent run)
+# ─────────────────────────────────────────────────────────────────────────────
+
+result = st.session_state.get("agent_result")
+if result is not None:
+
+    st.markdown("---")
+    st.markdown("## 📊 Agent Report")
+
+    # ── Row 1: Assessment + Strategy + Confidence ─────────────────────────────
+    c1, c2, c3 = st.columns([2, 1.5, 1.5])
+
+    with c1:
+        q = result.assessment.quality
+        q_colour = {"good": "#3fb950", "poor": "#f85149", "unclear": "#d29922"}.get(q, "#8b949e")
+        st.markdown(f"""
+<div class="nv-card">
+  <div class="nv-card-title">🔍 Perception — Image Assessment</div>
+  <div class="assess-grid">
+    <div class="assess-item">
+      <div class="assess-label">Quality</div>
+      <div class="assess-value" style="color:{q_colour};">{q.upper()}</div>
+    </div>
+    <div class="assess-item">
+      <div class="assess-label">Has Math</div>
+      <div class="assess-value">{"✓" if result.assessment.has_math else "✗"}</div>
+    </div>
+    <div class="assess-item">
+      <div class="assess-label">Diagrams</div>
+      <div class="assess-value">{"✓" if result.assessment.has_diagrams else "✗"}</div>
+    </div>
+    <div class="assess-item">
+      <div class="assess-label">Density</div>
+      <div class="assess-value" style="font-size:0.85rem;">{result.assessment.handwriting_density}</div>
+    </div>
+    <div class="assess-item" style="grid-column:span 2;">
+      <div class="assess-label">Agent Notes</div>
+      <div style="font-size:0.78rem;color:#8b949e;margin-top:4px;">{result.assessment.notes}</div>
+    </div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    with c2:
+        strategy_labels = {
+            "math_focused":         "📐 Math Focused",
+            "careful_reconstruction": "🔬 Careful Reconstruction",
+            "structure_aware":      "🗂 Structure Aware",
+            "detail_preserving":    "🔎 Detail Preserving",
+            "standard":             "⚡ Standard",
+        }
+        badge = strategy_labels.get(result.strategy_used, result.strategy_used)
+        st.markdown(f"""
+<div class="nv-card" style="height:100%;">
+  <div class="nv-card-title">🧠 Decision — Strategy</div>
+  <div style="margin-top:0.8rem;">
+    <div class="strategy-badge">{badge}</div>
+  </div>
+  <div style="font-size:0.78rem;color:#6e7b8b;margin-top:0.8rem;">
+    Selected automatically based on image perception.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    with c3:
+        conf_pct = int(result.confidence * 100)
+        conf_colour = "#3fb950" if conf_pct >= 75 else "#d29922" if conf_pct >= 50 else "#f85149"
+        st.markdown(f"""
+<div class="nv-card" style="height:100%;">
+  <div class="nv-card-title">📈 Agent Confidence</div>
+  <div style="font-size:2.4rem;font-weight:800;color:{conf_colour};margin-top:0.4rem;">
+    {conf_pct}%
+  </div>
+  <div class="conf-bar-wrap">
+    <div class="conf-bar-fill" style="width:{conf_pct}%;background:{'linear-gradient(90deg,#3fb950,#2ea043)' if conf_pct>=75 else 'linear-gradient(90deg,#d29922,#9e6a03)' if conf_pct>=50 else 'linear-gradient(90deg,#f85149,#da3633)'};"></div>
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    # ── Tabs: Output / Critique / Log ─────────────────────────────────────────
+    st.markdown("### 📄 Agent Output")
+    tab_out, tab_crit, tab_log = st.tabs(["✅ Refined Output", "🔎 Self-Critique", "🔄 Activity Log"])
+
+    with tab_out:
+        st.markdown(result.refined_markdown)
+
+    with tab_crit:
+        refined_used = ("looks complete and accurate" not in result.critique.lower())
+        st.markdown(f"""
+<div class="nv-card">
+  <div class="nv-card-title">Critique Result</div>
+  <div style="font-size:0.88rem;color:#c9d1d9;line-height:1.7;">{result.critique}</div>
+  <div style="margin-top:0.8rem;font-size:0.78rem;color:#6e7b8b;">
+    {'⚙️ Refinement pass was applied based on this critique.' if refined_used else '✅ No refinement needed — output passed review.'}
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    with tab_log:
+        log_html = "<br>".join(result.agent_log)
+        st.markdown(f'<div class="agent-log">{log_html}</div>', unsafe_allow_html=True)
+
+    # ── Human-in-the-Loop Gate ────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("""
+<div class="hitl-banner">
+  <div class="hitl-title">🟢 Human-in-the-Loop Control</div>
+  <div class="hitl-desc">
+    Review the agent's output above. You control what happens next — approve to download,
+    reject to discard, or re-run for another agent pass.
+  </div>
+</div>
+""", unsafe_allow_html=True)
+
+    col_a, col_r, col_rr = st.columns([1, 1, 1])
+    with col_a:
+        if st.button("✅ Accept Output", use_container_width=True):
+            st.session_state.hitl_accepted = True
+            st.rerun()
+    with col_r:
+        if st.button("❌ Reject Output", use_container_width=True):
+            st.session_state.hitl_accepted = False
+            st.session_state.agent_result = None
+            st.rerun()
+    with col_rr:
+        if st.button("🔁 Re-run Agent", use_container_width=True):
+            st.session_state.agent_result = None
+            st.session_state.hitl_accepted = None
+            st.rerun()
+
+    # ── Download Section (only if accepted) ───────────────────────────────────
+    if st.session_state.hitl_accepted is True:
+        st.success("✅ Output accepted! Downloads are now available.")
+        st.markdown("### 💾 Download")
+
+        final_md = result.refined_markdown
+
+        def _make_docx(md_text: str) -> bytes:
+            doc = Document()
+            t = doc.add_paragraph("Converted Notes")
+            t.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            t.runs[0].font.size = Pt(18)
+            t.runs[0].font.bold = True
+            doc.add_paragraph()
+            for line in md_text.split("\n"):
+                if line.strip():
+                    if line.startswith("# "):
+                        p = doc.add_paragraph(line[2:])
+                        p.runs[0].font.size = Pt(16)
+                        p.runs[0].font.bold = True
+                    elif line.startswith("## "):
+                        p = doc.add_paragraph(line[3:])
+                        p.runs[0].font.size = Pt(14)
+                        p.runs[0].font.bold = True
+                    elif line.startswith("### "):
+                        p = doc.add_paragraph(line[4:])
+                        p.runs[0].font.size = Pt(12)
+                        p.runs[0].font.bold = True
+                    elif line.strip().startswith(("-", "*")):
+                        doc.add_paragraph(line.strip()[1:].strip(), style="List Bullet")
+                    else:
+                        doc.add_paragraph(line)
+            buf = io.BytesIO()
+            doc.save(buf)
+            buf.seek(0)
+            return buf.read()
+
+        col_d1, col_d2, _ = st.columns([1, 1, 2])
+        with col_d1:
             st.download_button(
-                label="📥 DOCX File",
-                data=docx_buffer,
-                file_name="converted_notes.docx",
+                "📥 DOCX File",
+                data=_make_docx(final_md),
+                file_name="notevision_output.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True
+                use_container_width=True,
             )
-        
-        with col_md:
-            # Markdown download
+        with col_d2:
             st.download_button(
-                label="📥 Markdown File",
-                data=st.session_state.markdown_output,
-                file_name="converted_notes.md",
+                "📥 Markdown File",
+                data=final_md,
+                file_name="notevision_output.md",
                 mime="text/markdown",
-                use_container_width=True
+                use_container_width=True,
             )
 
+    elif st.session_state.hitl_accepted is False:
+        st.warning("Output rejected. Upload a new image or re-run the agent.")
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Footer
+# ─────────────────────────────────────────────────────────────────────────────
+
 st.markdown("---")
 st.markdown("""
-<div style='text-align: center; padding: 2rem 0;'>
-    <p style='color: #a0aec0; font-size: 0.9rem; margin: 0;'>
-        Powered by NoteVision AI | Built with Streamlit ❤️
-    </p>
-    <p style='color: #cbd5e0; font-size: 0.8rem; margin-top: 0.5rem;'>
-        © 2026 NoteVision - Transform Handwriting into Digital Text
-    </p>
+<div style="text-align:center;padding:1.5rem 0;">
+  <p style="color:#4a5568;font-size:0.85rem;margin:0;">
+    NoteVision Agent &nbsp;·&nbsp; Phase 2 Agentic System &nbsp;·&nbsp;
+    Perceive → Assess → Plan → Convert → Critique → Refine → Deliver
+  </p>
+  <p style="color:#3d4559;font-size:0.75rem;margin-top:6px;">
+    Powered by Google Gemini 2.0 Flash &nbsp;|&nbsp; Built with Streamlit
+  </p>
 </div>
 """, unsafe_allow_html=True)
