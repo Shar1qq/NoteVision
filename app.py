@@ -747,9 +747,18 @@ if result is not None:
         mode_used = result.strategy_used
         is_diagram = st.session_state.diagram_mode
         st.markdown(
-            f"<div style='font-size:0.75rem;color:#6e7b8b;margin-bottom:0.6rem;'>"
+            f"<div style='font-size:0.75rem;color:#6e7b8b;margin-bottom:0.5rem;'>"
             f"{'📊 Diagram Mode' if is_diagram else '📝 Text Mode'} &nbsp;·&nbsp; "
             f"Strategy: <code>{mode_used}</code></div>",
+            unsafe_allow_html=True
+        )
+        st.markdown(
+            "<div style='background:#0d1117;border-left:3px solid #d2992255;"
+            "border-radius:0 6px 6px 0;padding:0.45rem 0.9rem;margin-bottom:0.9rem;"
+            "font-size:0.75rem;color:#9e7a2e;'>"
+            "⚠️ <b>AI-generated content.</b> Review carefully before use — "
+            "mathematical expressions, diagram values, and technical details may contain errors."
+            "</div>",
             unsafe_allow_html=True
         )
 
