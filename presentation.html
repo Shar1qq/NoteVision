@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<!-- REDUCED: 15 focused slides -->
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NoteVision Agent – Phase 2 Presentation</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reset.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/night.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --nv-purple: #667eea;
+  --nv-violet: #764ba2;
+  --nv-green:  #3fb950;
+  --nv-yellow: #d29922;
+  --nv-red:    #f85149;
+  --nv-bg:     #0f1117;
+  --nv-card:   #1e2130;
+  --nv-border: #2d3250;
+  --nv-text:   #c9d1d9;
+  --nv-muted:  #8b949e;
+}
+.reveal { font-family: 'Inter', sans-serif; }
+.reveal h1, .reveal h2, .reveal h3, .reveal h4 { font-family: 'Inter', sans-serif; font-weight: 800; }
+.reveal h1 { font-size: 2.2em; }
+.reveal h2 { font-size: 1.6em; color: #fff; }
+.reveal h3 { font-size: 1.15em; color: var(--nv-purple); text-transform: uppercase; letter-spacing: 0.08em; }
+.reveal section { text-align: left; }
+
+/* Title slide */
+.title-slide { text-align: center !important; }
+.title-slide h1 { background: linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-size:2.4em; }
+.title-badge { display:inline-block; background:linear-gradient(135deg,#667eea22,#764ba222); border:1px solid #667eea55; color:#a5b4fc; border-radius:20px; padding:0.3rem 1.2rem; font-size:0.75em; margin:0.3rem; }
+
+/* Cards */
+.card { background:var(--nv-card); border:1px solid var(--nv-border); border-radius:10px; padding:0.8rem 1.1rem; margin-bottom:0.5rem; }
+.card-title { font-size:0.6em; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--nv-purple); margin-bottom:0.4rem; }
+
+/* Grid */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.6rem; }
+
+/* Principle list */
+.principle { display:flex; align-items:flex-start; gap:0.5rem; margin-bottom:0.5rem; font-size:0.78em; }
+.principle .dot { flex-shrink:0; width:8px; height:8px; border-radius:50%; margin-top:5px; }
+.dot-blue { background:var(--nv-purple); }
+.dot-green { background:var(--nv-green); }
+.dot-yellow { background:var(--nv-yellow); }
+.dot-red { background:var(--nv-red); }
+
+/* Table */
+.nv-table { width:100%; border-collapse:collapse; font-size:0.72em; }
+.nv-table th { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; padding:0.5rem 0.7rem; text-align:left; }
+.nv-table td { padding:0.45rem 0.7rem; border-bottom:1px solid var(--nv-border); color:var(--nv-text); }
+.nv-table tr:nth-child(even) td { background:#161b27; }
+
+/* Pipeline */
+.pipe-step { display:flex; align-items:center; gap:0.7rem; padding:0.45rem 0.8rem; border-radius:8px; margin-bottom:0.3rem; border:1px solid var(--nv-border); background:#0d1117; font-size:0.75em; }
+.pipe-step.done { border-color:#2ea04344; background:#0a160a; }
+.pipe-icon { font-size:1.1em; flex-shrink:0; }
+.pipe-name { font-weight:700; color:var(--nv-text); }
+.pipe-desc { color:var(--nv-muted); font-size:0.9em; }
+
+/* Highlight boxes */
+.hbox { border-radius:8px; padding:0.65rem 1rem; margin-bottom:0.4rem; font-size:0.78em; }
+.hbox-purple { background:#667eea15; border-left:3px solid var(--nv-purple); }
+.hbox-green  { background:#3fb95015; border-left:3px solid var(--nv-green); }
+.hbox-yellow { background:#d2992215; border-left:3px solid var(--nv-yellow); }
+.hbox-red    { background:#f8514915; border-left:3px solid var(--nv-red); }
+
+/* Tags */
+.tag { display:inline-block; border-radius:12px; padding:0.15rem 0.6rem; font-size:0.6em; font-weight:700; margin:0.1rem; }
+.tag-purple { background:#667eea22; color:#a5b4fc; border:1px solid #667eea44; }
+.tag-green  { background:#3fb95022; color:#56d364; border:1px solid #3fb95044; }
+.tag-yellow { background:#d2992222; color:#e3b341; border:1px solid #d2992244; }
+.tag-red    { background:#f8514922; color:#ff7b72; border:1px solid #f8514944; }
+
+/* Section divider */
+.section-div { text-align:center; }
+.section-div h2 { background:linear-gradient(135deg,#667eea,#764ba2); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-size:2em; }
+.section-div p { color:var(--nv-muted); font-size:0.85em; }
+
+.reveal .slides section { padding: 20px 40px; }
+.muted { color: var(--nv-muted); }
+.accent { color: var(--nv-purple); font-weight:700; }
+.green  { color: var(--nv-green); }
+.yellow { color: var(--nv-yellow); }
+.red    { color: var(--nv-red); }
+small { font-size: 0.65em; color: var(--nv-muted); }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<!-- ─────────────────────── SLIDE 1: TITLE ─────────────────────────────── -->
+<section class="title-slide">
+  <h1>NoteVision Agent</h1>
+  <h2 style="color:#a5b4fc;font-size:1em;font-weight:400;margin-top:0.4rem;">Phase 2 — Agentic AI with Ethical & Professional Design</h2>
+  <div style="margin:1.2rem 0;">
+    <span class="title-badge">🤖 Agentic AI</span>
+    <span class="title-badge">⚖️ ACM/IEEE Ethics</span>
+    <span class="title-badge">🔒 Privacy-by-Design</span>
+    <span class="title-badge">🛡️ Human-in-the-Loop</span>
+  </div>
+  <div style="font-size:0.7em;color:var(--nv-muted);margin-top:1rem;">Professional Practices in IT &nbsp;·&nbsp; Google Gemini 2.5 Flash &nbsp;·&nbsp; Vertex AI &nbsp;·&nbsp; Streamlit</div>
+</section>
+
+<!-- ─────────────────── SLIDE 2: PHASE 1 → PHASE 2 ─────────────────────── -->
+<section>
+  <h3>Project Overview</h3>
+  <h2>From Static Tool to Ethical Agent</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📋 Phase 1 — What We Had</div>
+      <div style="font-size:0.76em;color:var(--nv-text);line-height:1.9;">
+        <span class="red">✗</span> Single generic prompt for all images<br>
+        <span class="red">✗</span> No image quality assessment<br>
+        <span class="red">✗</span> No output validation or feedback loop<br>
+        <span class="red">✗</span> No memory across conversions<br>
+        <span class="red">✗</span> Zero ethical safeguards<br>
+        <span class="red">✗</span> No user consent or data transparency
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🤖 Phase 2 — What We Built</div>
+      <div style="font-size:0.76em;color:var(--nv-text);line-height:1.9;">
+        <span class="green">✓</span> 6-step agentic pipeline (Perceive → Refine)<br>
+        <span class="green">✓</span> 6 adaptive strategies selected by agent<br>
+        <span class="green">✓</span> Self-critique + refinement feedback loop<br>
+        <span class="green">✓</span> Short-term + long-term memory<br>
+        <span class="green">✓</span> Ethical safety gate + consent gate<br>
+        <span class="green">✓</span> 2× Human-in-the-Loop (HITL) checkpoints
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.78em;">
+    <strong class="accent">Core shift:</strong> Phase 1 was a <em>reactive tool</em> — user drives everything. Phase 2 is a <em>proactive agent</em> — perceives context, makes decisions autonomously, and keeps humans in control at critical points.
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 3: ETHICS vs MORALS + PROFESSIONAL ETHICS ── -->
+<section>
+  <h3>Professional Ethics</h3>
+  <h2>Computing as a Profession — Obligations We Accepted</h2>
+  <div class="grid-2" style="margin-bottom:0.5rem;">
+    <div class="card">
+      <div class="card-title">💭 Morals vs. Ethics — Applied</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        <strong style="color:var(--nv-muted);">Morals</strong> = personal belief → "AI shouldn't fully replace human judgment"<br>
+        <span style="color:var(--nv-muted);font-size:0.9em;">Led us to keep the system <strong>semi-autonomous</strong>.</span><br><br>
+        <strong style="color:var(--nv-muted);">Ethics</strong> = professional standard → ACM §1.6 requires privacy<br>
+        <span style="color:var(--nv-muted);font-size:0.9em;">Led us to store <strong>zero user data</strong>, even though caching would improve performance.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Three Professional Obligations</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        <strong style="color:var(--nv-purple);">To Users</strong> — accurate output, transparent limits, full control<br><br>
+        <strong style="color:var(--nv-purple);">To Society</strong> — no harm, no bias amplification, accessible design<br><br>
+        <strong style="color:var(--nv-purple);">To Data</strong> — minimal collection, no persistence, informed consent
+      </div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="hbox hbox-red" style="font-size:0.75em;">
+      <strong class="red">Convenient shortcut rejected:</strong> Skip critique loop (faster) · Store images (better caching)
+    </div>
+    <div class="hbox hbox-green" style="font-size:0.75em;">
+      <strong class="green">Professional choice made:</strong> Kept critique loop (quality) · No storage (privacy duty)
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 4: ETHICAL DECISION MAKING ─────────────── -->
+<section>
+  <h3>Ethical Decision Making</h3>
+  <h2>The 4-Step Model — Applied to NoteVision</h2>
+  <div class="grid-2">
+    <div>
+      <div class="hbox hbox-purple">
+        <strong class="accent">1. Identify the Ethical Issue</strong><br>
+        <span style="font-size:0.83em;color:var(--nv-text);">AI may produce inaccurate or biased output for academic content. Users may upload sensitive documents (exam papers, medical records) without realising the risk.</span>
+      </div>
+      <div class="hbox hbox-purple" style="margin-top:0.45rem;">
+        <strong class="accent">2. Analyse Stakeholders</strong><br>
+        <span style="font-size:0.83em;color:var(--nv-text);"><strong>Students:</strong> need accuracy &nbsp;|&nbsp; <strong>Educators:</strong> need trust &nbsp;|&nbsp; <strong>Society:</strong> needs responsible AI</span>
+      </div>
+    </div>
+    <div>
+      <div class="hbox hbox-purple">
+        <strong class="accent">3. Evaluate Alternatives</strong><br>
+        <span style="font-size:0.83em;color:var(--nv-text);">Full automation (risky — no oversight) &nbsp;→ rejected<br>Manual only (not innovative) &nbsp;→ rejected<br><strong>Semi-autonomous + HITL &nbsp;→ chosen ✓</strong></span>
+      </div>
+      <div class="hbox hbox-green" style="margin-top:0.45rem;">
+        <strong class="green">4. Justified Decision</strong><br>
+        <span style="font-size:0.83em;color:var(--nv-text);">Agent autonomously perceives, converts, critiques. Human approves at two mandatory gates. Confidence score communicated honestly. No output released without approval.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 5: ETHICAL THEORIES ────────────────────── -->
+<section>
+  <h3>Ethical Theories</h3>
+  <h2>Utilitarianism · Deontology · Human-Centered Design</h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">⚖️ Utilitarianism</div>
+      <div style="font-size:0.73em;color:var(--nv-text);line-height:1.8;">
+        <em>"Greatest good for the greatest number."</em><br><br>
+        <strong style="color:var(--nv-purple);">Applied:</strong> Safety gate stops one bad upload from causing academic harm to the whole system. Maximum benefit, minimum harm — for all users.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📜 Deontology</div>
+      <div style="font-size:0.73em;color:var(--nv-text);line-height:1.8;">
+        <em>"Act from duty, regardless of outcome."</em><br><br>
+        <strong style="color:var(--nv-purple);">Applied:</strong> Privacy is a duty (ACM §1.6). We do NOT store images — even though caching would improve speed. Privacy cannot be traded for convenience.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🧑‍💻 Human-Centered</div>
+      <div style="font-size:0.73em;color:var(--nv-text);line-height:1.8;">
+        <em>"Design for the user, not the metric."</em><br><br>
+        <strong style="color:var(--nv-purple);">Applied:</strong> User has Accept / Reject / Re-run at all times. No dark patterns. No hidden actions. No auto-processing without consent.
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-yellow" style="margin-top:0.6rem;font-size:0.77em;">
+    <strong class="yellow">⚠️ Avoided Addictive Design:</strong> No engagement traps, no score gamification, no auto-submit. Every action requires deliberate user intent.
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 6: ACM / IEEE CODE ─────────────────────── -->
+<section>
+  <h3>ACM / IEEE Code of Ethics</h3>
+  <h2>Five Principles Applied — One Violation Acknowledged</h2>
+  <div style="margin-bottom:0.4rem;">
+    <div class="principle"><div class="dot dot-green"></div><div style="font-size:0.77em;"><strong style="color:var(--nv-green);">§1.1 Contribute to society</strong> — Converts inaccessible handwriting to structured digital text. Improves academic accessibility for all students regardless of typing ability.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div style="font-size:0.77em;"><strong style="color:var(--nv-green);">§1.6 Respect privacy</strong> — Zero persistent storage. Images processed in memory only, discarded after API call lifetime. GDPR-aligned by design.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div style="font-size:0.77em;"><strong style="color:var(--nv-green);">§2.5 Thorough evaluation</strong> — Critique + refinement loop validates output before delivery. Confidence score communicated honestly with colour-coded indicator.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div style="font-size:0.77em;"><strong style="color:var(--nv-green);">§2.9 Design for inclusion</strong> — Consent gate + ethical safety screening ensure the system is safe and non-harmful for all user groups.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div style="font-size:0.77em;"><strong style="color:var(--nv-green);">§3.1 Know your limitations</strong> — Semi-autonomous design. Confidence score shown with red/amber/green. Disclaimer that output requires human verification.</div></div>
+  </div>
+  <div class="hbox hbox-yellow" style="font-size:0.76em;">
+    <strong class="yellow">⚠️ Potential Violation — §2.5 (Model Bias):</strong> LLM may produce inconsistent results across different handwriting styles, cultural scripts, or non-English content.
+    <strong> Mitigation:</strong> Confidence scoring + HITL mandatory approval + re-run option available at all times.
+  </div>
+</section>
+
+<!-- ────────────────── SLIDE 7: LEGAL + IPR + CRIMES ─────────────────── -->
+<section>
+  <h3>Legal Awareness</h3>
+  <h2>IPR · Data Protection · Computer Crimes</h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">©️ Intellectual Property Rights</div>
+      <div style="font-size:0.71em;color:var(--nv-text);line-height:1.8;">
+        NoteVision is an original student project owned by the team. Third-party deps used under Apache 2.0 / MIT licences.<br><br>
+        <strong>User obligation</strong> — displayed in UI before every run:<br>
+        <em style="color:var(--nv-muted);">"Only upload content you own or have rights to process."</em>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔒 Data Protection (GDPR / PECA)</div>
+      <div style="font-size:0.71em;color:var(--nv-text);line-height:1.8;">
+        <strong>GDPR-aligned</strong> — no data retained beyond API call · consent obtained · right to cancel at any time<br><br>
+        <strong>PECA 2016</strong> (Pakistan) — unauthorised processing of others' data is a criminal offence. Addressed via consent gate + safety screening.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡️ Computer Crimes Mitigated</div>
+      <div style="font-size:0.71em;color:var(--nv-text);line-height:1.8;">
+        <span class="red">Data theft</span> — no storage, no breach surface<br>
+        <span class="red">Misuse</span> — safety gate flags exam papers &amp; confidential docs<br>
+        <span class="red">Credential theft</span> — service account auth, secrets manager, no hardcoded keys<br>
+        <span class="red">Abuse</span> — rate limiting (20/session, 10s cooldown)
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.76em;">
+    <strong class="accent">Computer Contract (Consent Gate):</strong> Every user must acknowledge data handling, IPR obligations, AI limitations, and responsible use <em>before</em> accessing the system. This constitutes an implicit user agreement.
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 8: AGENT ARCHITECTURE ─────────────────── -->
+<section>
+  <h3>Agentic System Design</h3>
+  <h2>The 6-Step Agent Pipeline</h2>
+  <div class="grid-2">
+    <div>
+      <div class="pipe-step done"><span class="pipe-icon">🛡️</span><div><div class="pipe-name">Step 0 — Safety Check <span class="tag tag-yellow">HITL Gate 1</span></div><div class="pipe-desc">Ethical screening before any processing. Halts on exam papers, confidential docs, inappropriate content.</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🔍</span><div><div class="pipe-name">Step 1 — Perceive</div><div class="pipe-desc">assess_image() → quality, has_math, has_diagrams, density, confidence</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🧠</span><div><div class="pipe-name">Step 2 — Decide</div><div class="pipe-desc">select_strategy() → rule-based, auditable. 6 strategies.</div></div></div>
+    </div>
+    <div>
+      <div class="pipe-step done"><span class="pipe-icon">⚙️</span><div><div class="pipe-name">Step 3 — Act</div><div class="pipe-desc">convert() → Gemini Vision + strategy prompt + memory context</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🔎</span><div><div class="pipe-name">Step 4 — Critique</div><div class="pipe-desc">Self-review: identifies missing LaTeX, structural errors, gaps</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">✨</span><div><div class="pipe-name">Step 5 — Refine</div><div class="pipe-desc">Applies critique fixes → refined Markdown stored in AgentMemory</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🟢</span><div><div class="pipe-name">Output Gate <span class="tag tag-green">HITL Gate 2</span></div><div class="pipe-desc">Accept / Reject / Re-run — download locked until approved</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 9: GAP ANALYSIS ────────────────────────── -->
+<section>
+  <h3>Gap Analysis</h3>
+  <h2>Phase 1 vs. Phase 2 — Feature by Feature</h2>
+  <table class="nv-table">
+    <tr><th>Requirement</th><th>Phase 1</th><th>Phase 2 Agent</th></tr>
+    <tr><td>Environmental Perception</td><td class="red">❌ None</td><td class="green">✅ assess_image (quality, math, diagrams)</td></tr>
+    <tr><td>Autonomous Decision-Making</td><td class="red">❌ Fixed prompt</td><td class="green">✅ 6 strategies, rule-based selection</td></tr>
+    <tr><td>Feedback Loop / Learning</td><td class="red">❌ None</td><td class="green">✅ Critique → Refinement every run</td></tr>
+    <tr><td>Memory</td><td class="red">❌ Stateless</td><td class="green">✅ Short-term (5 results) + Long-term history</td></tr>
+    <tr><td>Ethical Safety Gate</td><td class="red">❌ None</td><td class="green">✅ AI screens every image (Step 0)</td></tr>
+    <tr><td>User Consent</td><td class="red">❌ None</td><td class="green">✅ Privacy gate on every session start</td></tr>
+    <tr><td>Transparency</td><td class="red">❌ None</td><td class="green">✅ Activity log, strategy badge, confidence score, ethics tab</td></tr>
+    <tr><td>IPR / Legal Notices</td><td class="red">❌ None</td><td class="green">✅ IPR notice before every run</td></tr>
+  </table>
+</section>
+
+<!-- ──────────────────── SLIDE 10: HUMAN-IN-THE-LOOP ─────────────────── -->
+<section>
+  <h3>Human-in-the-Loop</h3>
+  <h2>Two Mandatory Safety Gates</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🛡️ Gate 1 — Ethical Safety Screening (Step 0)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        <strong>Triggered by:</strong> exam papers · personal medical/legal records · CONFIDENTIAL-labelled docs · inappropriate content<br><br>
+        <strong>Mechanism:</strong> Gemini screens image with structured JSON prompt before any processing begins. Pipeline halts immediately if concern detected.<br><br>
+        <strong>User choices:</strong><br>
+        ✋ <em>Acknowledge &amp; Take Responsibility</em> → proceed<br>
+        🚫 <em>Cancel — Do Not Process</em> → abort
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🟢 Gate 2 — Output Approval (Final)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        <strong>Always shown</strong> after all 5 pipeline steps complete.<br><br>
+        <strong>User reviews:</strong> Refined output · Self-critique tab · Activity log · Ethics &amp; Compliance tab<br><br>
+        <strong>User choices:</strong><br>
+        ✅ <em>Accept Output</em> → downloads unlocked (Markdown + DOCX)<br>
+        ❌ <em>Reject Output</em> → result discarded<br>
+        🔁 <em>Re-run Agent</em> → fresh pipeline
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.77em;">
+    <strong class="accent">Design Principle (ACM §2.9):</strong> The agent <em>suggests</em> — the human <em>decides</em>. No output is ever released without explicit user approval. This is a professional obligation, not a UX choice.
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 11: INDUSTRY PRACTICES & TRENDS ────────── -->
+<section>
+  <h3>Industry Awareness</h3>
+  <h2>Industry Practices · IT Trends · Career Impact</h2>
+  <div class="grid-2" style="margin-bottom:0.5rem;">
+    <div class="card">
+      <div class="card-title">🏢 Student vs. Software House</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.85;">
+        <strong style="color:var(--nv-purple);">We adopted:</strong> Service account auth (not plain API keys) · Streamlit Secrets management · Rate limiting · Ethical gates · Audit log · Version control<br><br>
+        <strong style="color:var(--nv-muted);">Software house adds:</strong> CI/CD · Penetration testing · AI ethics board · Multi-region deployment · SLAs
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📈 IT Trend: The Agentic AI Shift</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.85;">
+        <span class="tag tag-yellow">2022</span> LLMs — question answering<br>
+        <span class="tag tag-purple">2023–24</span> AI Agents — AutoGPT, LangChain<br>
+        <span class="tag tag-green">2025+</span> Autonomous Systems — Vertex AI Agents<br><br>
+        NoteVision represents this exact shift: <strong>static tool → agentic system.</strong> The industry is moving here.
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-green" style="font-size:0.76em;">
+    <strong class="green">Career Impact:</strong> The AI industry needs professionals who can design <strong>ethical AI systems</strong> with human oversight — not just write code. This project demonstrates: agentic design · privacy-by-design · HITL architecture · bias disclosure · ACM/IEEE compliance.
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 12: RISK + SAFETY MECHANISMS ──────────── -->
+<section>
+  <h3>Risk & Safety</h3>
+  <h2>Risk Assessment + Defence-in-Depth</h2>
+  <table class="nv-table" style="margin-bottom:0.5rem;">
+    <tr><th>Risk</th><th>Impact</th><th>Mitigation</th></tr>
+    <tr><td>Incorrect OCR</td><td class="red">High (academic)</td><td>Critique loop + confidence score + HITL approval</td></tr>
+    <tr><td>LLM bias / handwriting</td><td class="yellow">Medium</td><td>Acknowledged in Ethics tab · re-run always available</td></tr>
+    <tr><td>Misuse (exams / confidential)</td><td class="red">High (legal)</td><td>Safety gate screens every image before processing</td></tr>
+    <tr><td>Data privacy breach</td><td class="red">High</td><td>No persistent storage · service account · Vertex AI</td></tr>
+    <tr><td>Over-automation</td><td class="red">High</td><td>Semi-autonomous design — HITL is mandatory</td></tr>
+  </table>
+  <div class="card">
+    <div class="card-title">🔐 Defence-in-Depth Safety Stack</div>
+    <div style="text-align:center;font-size:0.78em;margin-top:0.2rem;">
+      <span class="tag tag-yellow">Privacy Consent Gate</span>
+      <span class="tag tag-yellow">IPR Notice</span>
+      <span class="tag tag-yellow">Safety Screening (HITL 1)</span>
+      <span class="tag tag-purple">Rate Limiting</span>
+      <span class="tag tag-purple">Confidence Score</span>
+      <span class="tag tag-green">Activity Audit Log</span>
+      <span class="tag tag-green">Ethics Tab (per run)</span>
+      <span class="tag tag-green">Output Approval (HITL 2)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 13: INTELLIGENCE & MEMORY ─────────────── -->
+<section>
+  <h3>Agentic Intelligence</h3>
+  <h2>Intelligence Layer + Memory Architecture</h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">🤖 LLM Intelligence</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+        Gemini 2.5 Flash via Vertex AI used for:<br>
+        • Image quality assessment<br>
+        • Safety screening<br>
+        • Conversion (vision + language)<br>
+        • Self-critique<br>
+        • Refinement
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📏 Rule-Based Decisions</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+        Strategy selection is <strong>deterministic + auditable</strong> — not LLM-driven.<br><br>
+        The agent can always explain WHY it picked a strategy. This is critical for <strong>professional accountability</strong> (ACM §3.1).
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🧠 Memory</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+        <strong>Short-term:</strong> Last 5 results injected as context → consistent formatting across pages<br><br>
+        <strong>Long-term:</strong> Full session history → sidebar audit trail<br><br>
+        <em class="muted">Cleared on refresh — GDPR-aligned</em>
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.76em;">
+    <strong class="accent">Why hybrid (LLM + rules)?</strong> Pure LLM decisions are opaque and unauditable. Rule-based strategy selection gives professional accountability. LLM handles the creative/vision tasks where intelligence is actually needed.
+  </div>
+</section>
+
+<!-- ──────────────────── SLIDE 14: COMPARATIVE ANALYSIS ──────────────── -->
+<section>
+  <h3>Comparative Analysis</h3>
+  <h2>Phase 1 Tool vs. Phase 2 Ethical Agent</h2>
+  <table class="nv-table">
+    <tr><th>Dimension</th><th>Phase 1 (Tool)</th><th>Phase 2 (Ethical Agent)</th></tr>
+    <tr><td><strong>Behaviour</strong></td><td class="yellow">Reactive (waits for input)</td><td class="green">Proactive (assesses before acting)</td></tr>
+    <tr><td><strong>Intelligence</strong></td><td class="red">Static — 1 generic strategy</td><td class="green">Adaptive — 6 context-aware strategies</td></tr>
+    <tr><td><strong>Quality Assurance</strong></td><td class="red">None</td><td class="green">Critique + refinement on every run</td></tr>
+    <tr><td><strong>Memory</strong></td><td class="red">Stateless</td><td class="green">Short + long-term with context injection</td></tr>
+    <tr><td><strong>Safety</strong></td><td class="red">None</td><td class="green">Consent gate + AI safety screening + HITL ×2</td></tr>
+    <tr><td><strong>Legal Compliance</strong></td><td class="red">None</td><td class="green">IPR notice + GDPR-aligned + PECA-aware</td></tr>
+    <tr><td><strong>Transparency</strong></td><td class="red">Black box</td><td class="green">Strategy badge + confidence + audit log + ethics tab</td></tr>
+    <tr><td><strong>ACM/IEEE Alignment</strong></td><td class="red">Not considered</td><td class="green">§1.1 · §1.6 · §2.5 · §2.9 · §3.1 applied; §2.5 violation disclosed</td></tr>
+  </table>
+</section>
+
+<!-- ──────────────────── SLIDE 15: CONCLUSION ────────────────────────── -->
+<section class="title-slide">
+  <h1 style="font-size:1.8em;">NoteVision Agent</h1>
+  <h2 style="color:#a5b4fc;font-size:0.9em;font-weight:400;margin-top:0.4rem;">Built with Professional Responsibility — Not Just Technical Skill</h2>
+  <div class="grid-2" style="margin-top:1.1rem;text-align:left;">
+    <div class="card">
+      <div class="card-title">✅ What We Delivered</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.9;">
+        6-step agentic pipeline (Observe → Learn)<br>
+        6 adaptive strategies + memory<br>
+        2× mandatory HITL safety gates<br>
+        ACM/IEEE §1.1, 1.6, 2.5, 2.9, 3.1 applied<br>
+        IPR notice + consent gate + ethics tab<br>
+        Full audit log + bias openly disclosed
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 CLOs Addressed</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.9;">
+        <strong>CLO 4:</strong> ACM/IEEE ethics in every design decision<br>
+        <strong>CLO 5:</strong> IPR notice + informed consent gate<br>
+        <strong>CLO 6:</strong> GDPR-aligned, PECA-aware, computer crimes mitigated<br>
+        <strong>CLO 8:</strong> Industry-aligned agentic AI system with professional safety practices
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:0.8rem;font-size:0.68em;color:var(--nv-muted);">Google Gemini 2.5 Flash · Vertex AI · Streamlit · Python</div>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  progress: true,
+  controls: true,
+  center: false,
+  width: 1280,
+  height: 720,
+  margin: 0.04,
+});
+</script>
+</body>
+</html>
+<!-- END --><!--REMOVED OLD SLIDES BELOW-->
+<!--
+<section class="title-slide">
+  <h1>NoteVision Agent</h1>
+  <h2 style="color:#a5b4fc;font-size:1.1em;font-weight:400;">Phase 2 — Agentic Handwriting Converter</h2>
+  <div style="margin:1.5rem 0;">
+    <span class="title-badge">🤖 Agentic AI System</span>
+    <span class="title-badge">⚖️ Ethics-First Design</span>
+    <span class="title-badge">🔒 Privacy-Compliant</span>
+  </div>
+  <div style="margin-top:1.5rem;font-size:0.75em;color:var(--nv-muted);">
+    <div style="margin-bottom:0.3rem;"><strong style="color:var(--nv-text);">Course:</strong> Professional Practices in IT</div>
+    <div><strong style="color:var(--nv-text);">Technology:</strong> Python · Streamlit · Google Gemini 2.5 Flash · Vertex AI</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 2: PHASE 1 RECAP -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Phase 1 Recap</h3>
+  <h2>Where We Started</h2>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">📋 The Problem</div>
+        <div style="font-size:0.78em;color:var(--nv-text);">Students spend hours manually transcribing handwritten notes into digital formats. Manual transcription is error-prone, time-consuming, and inaccessible.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">👥 Target Users</div>
+        <div style="font-size:0.78em;color:var(--nv-text);">University students · Educators · Researchers with handwritten archives</div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚙️ Technology</div>
+        <div style="font-size:0.78em;color:var(--nv-text);">Streamlit · Google Gemini Vision API · python-docx · PIL</div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="height:82%;">
+        <div class="card-title">Phase 1 Features</div>
+        <div style="font-size:0.75em;color:var(--nv-text);line-height:1.9;">
+          ✅ Upload JPG/PNG handwritten notes<br>
+          ✅ Single-click Gemini Vision OCR<br>
+          ✅ Markdown output with LaTeX support<br>
+          ✅ DOCX export<br>
+          ❌ No quality assessment<br>
+          ❌ No feedback loop<br>
+          ❌ No ethical safeguards<br>
+          ❌ Static — one strategy for all images
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-yellow" style="margin-top:0.5rem;">
+    <strong class="yellow">Phase 1 Limitation:</strong> A static tool with no intelligence, no autonomy, and no ethical awareness.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 3: COMPUTING AS A PROFESSION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Professional Practices</h3>
+  <h2>Computing as a Formal Profession</h2>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">🎓 Why It's a Profession</div>
+        <div style="font-size:0.76em;color:var(--nv-text);line-height:1.8;">
+          Software development is not just coding — it carries <strong>legal, ethical, and social obligations</strong>. Like medicine or law, it requires adherence to professional standards and codes of conduct (ACM, IEEE).
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔒 Responsibility to Data</div>
+        <div style="font-size:0.76em;color:var(--nv-text);line-height:1.8;">
+          NoteVision processes personal academic content. We are legally and ethically responsible for how that data is handled, stored, and processed.
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="hbox hbox-purple">
+        <strong class="accent">👤 Responsibility to Users:</strong><br>Accurate output, transparent limitations, human control
+      </div>
+      <div class="hbox hbox-green" style="margin-top:0.5rem;">
+        <strong class="green">🌍 Responsibility to Society:</strong><br>No harm, no bias amplification, accessible design
+      </div>
+      <div class="hbox hbox-yellow" style="margin-top:0.5rem;">
+        <strong class="yellow">🗄️ Responsibility to Data:</strong><br>Minimal collection, no persistence, informed consent
+      </div>
+      <div class="hbox hbox-red" style="margin-top:0.5rem;">
+        <strong class="red">⚖️ Legal Obligation:</strong><br>IPR compliance, data protection laws, PECA 2016
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 4: ETHICS VS MORALS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Ethical Foundations</h3>
+  <h2>Ethics vs. Morals</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">💭 Morals — Personal Beliefs</div>
+      <div style="font-size:0.75em;color:var(--nv-text);line-height:1.85;">
+        Individual values that guide personal behaviour.<br><br>
+        <em class="muted">Example in our project:</em><br>
+        "I personally believe AI shouldn't replace human effort entirely" — this guided our decision to keep the system <strong>semi-autonomous</strong>.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Ethics — Professional Standards</div>
+      <div style="font-size:0.75em;color:var(--nv-text);line-height:1.85;">
+        Codified standards expected from professionals in a field.<br><br>
+        <em class="muted">Example in our project:</em><br>
+        ACM §1.6 requires us to respect privacy — so we <strong>never store user images</strong>, regardless of engineering convenience.
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.6rem;">
+    <div class="card-title">🤔 Applied to NoteVision: Personal Convenience vs. Professional Responsibility</div>
+    <div class="grid-2" style="font-size:0.73em;color:var(--nv-text);">
+      <div>
+        <span class="red">✗ Convenient shortcut:</span> Skip critique loop → faster output<br>
+        <span class="red">✗ Convenient shortcut:</span> Store images → better caching
+      </div>
+      <div>
+        <span class="green">✓ Professional choice:</span> Kept critique loop → quality assurance<br>
+        <span class="green">✓ Professional choice:</span> No storage → privacy by design
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 5: PROFESSIONAL ETHICS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Professional Ethics</h3>
+  <h2>Responsibility in Practice</h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">🛠️ Code Quality</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+        • Modular architecture (AgentTools, AgentMemory, NoteVisionAgent)<br>
+        • Typed dataclasses for all outputs<br>
+        • Retry logic with exponential backoff<br>
+        • Fallback strategies for every failure
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔐 Security</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+        • Service account auth (not raw API keys)<br>
+        • Credentials stored in Streamlit Secrets<br>
+        • Vertex AI managed infrastructure<br>
+        • Rate limiting: 20 conversions / session
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🛡️ User Safety</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+        • Privacy consent gate (first visit)<br>
+        • Ethical safety screening (every run)<br>
+        • Confidence score communicated<br>
+        • Human-in-the-Loop approval gate
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.6rem;font-size:0.78em;">
+    <strong class="accent">Key principle:</strong> We designed for the user's wellbeing and data rights — not just functionality. Every feature decision was evaluated against professional standards.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 6: ETHICAL DECISION MAKING -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Ethical Decision Making</h3>
+  <h2>Speed vs. Quality: A Real Dilemma</h2>
+  <div class="card">
+    <div class="card-title">🎯 The Decision Faced</div>
+    <div style="font-size:0.78em;color:var(--nv-text);">Should we deliver output immediately after conversion, or add a critique + refinement pass that costs extra time and API calls?</div>
+  </div>
+  <div class="grid-2" style="margin-top:0.5rem;">
+    <div class="hbox hbox-red">
+      <strong class="red">Option A — Speed First:</strong><br>
+      <span style="font-size:0.85em;color:var(--nv-text);">
+        Return output immediately. Faster UX. Cheaper.<br>
+        <em class="muted">Risk: Inaccurate LaTeX, missing sections, structural errors delivered to student.</em>
+      </span>
+    </div>
+    <div class="hbox hbox-green">
+      <strong class="green">Option B — Quality First (Chosen):</strong><br>
+      <span style="font-size:0.85em;color:var(--nv-text);">
+        Add self-critique → refinement loop. Slower but validated.<br>
+        <em class="muted">Benefit: Output is reviewed before reaching the user. Trust is maintained.</em>
+      </span>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.78em;">
+    <strong class="accent">Ethical Reasoning:</strong> Academic content errors have real consequences (wrong grades, misunderstanding). Professional responsibility demanded quality over speed. This aligns with ACM §2.5 — thorough evaluation.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 7: IMPORTANCE OF ETHICAL DECISION MAKING -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Why Ethics Matters</h3>
+  <h2>Impact of Ethical Decisions</h2>
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">👨‍🎓</div>
+      <div class="card-title">Impact on Users</div>
+      <div style="font-size:0.72em;color:var(--nv-text);">Incorrect OCR → wrong study notes → failed exams. Every output we deliver has a direct academic impact on real students.</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🌍</div>
+      <div class="card-title">Impact on Society</div>
+      <div style="font-size:0.72em;color:var(--nv-text);">AI systems that lack ethical oversight erode public trust in AI. Responsible design sets the standard for trustworthy AI in education.</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🤝</div>
+      <div class="card-title">System Trust</div>
+      <div style="font-size:0.72em;color:var(--nv-text);">HITL gates, transparency logs, and confidence scores build the user's trust in the system — they know the AI's limits and stay in control.</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.6rem;">
+    <div class="card-title">🔗 The Chain of Consequence</div>
+    <div style="font-size:0.75em;color:var(--nv-text);text-align:center;">
+      <span class="tag tag-red">Poor Ethical Design</span> →
+      <span class="tag tag-yellow">Inaccurate Output</span> →
+      <span class="tag tag-yellow">Student Harmed</span> →
+      <span class="tag tag-red">Trust in AI Broken</span> →
+      <span class="tag tag-red">Societal Harm</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 8: ETHICAL THEORIES -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Ethical Theories Applied</h3>
+  <h2>Guiding Our Design Choices</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">⚖️ Utilitarianism</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.8;">
+        <em>"The greatest good for the greatest number."</em><br><br>
+        <strong style="color:var(--nv-purple);">Applied:</strong> The ethical safety gate protects ALL users — if one student uploads a confidential document unknowingly, the gate prevents misuse before harm occurs. Maximum benefit, minimum harm.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📜 Deontology</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.8;">
+        <em>"Act according to duty, regardless of outcome."</em><br><br>
+        <strong style="color:var(--nv-purple);">Applied:</strong> We do NOT store user images — even though caching would improve performance. Privacy is a duty (ACM §1.6), not a feature we can trade away for convenience.
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.5rem;">
+    <div class="card-title">🧑‍💻 Human-Centered Design + Avoiding Addictive Patterns</div>
+    <div class="grid-2" style="font-size:0.73em;color:var(--nv-text);">
+      <div>
+        <span class="green">✓</span> User always in control (Accept/Reject/Re-run)<br>
+        <span class="green">✓</span> No dark patterns — no hidden actions<br>
+        <span class="green">✓</span> Transparency over automation
+      </div>
+      <div>
+        <span class="red">✗</span> We deliberately avoided engagement traps<br>
+        <span class="red">✗</span> No auto-processing without consent<br>
+        <span class="red">✗</span> No score gamification to drive overuse
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 9: ACM / IEEE CODE OF ETHICS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>ACM / IEEE Code of Ethics</h3>
+  <h2>Principles in NoteVision</h2>
+  <div style="margin-bottom:0.5rem;">
+    <div class="principle"><div class="dot dot-green"></div><div><strong style="color:var(--nv-green);">§1.1 Contribute to society</strong> — Converts inaccessible handwriting into searchable, structured digital text. Improves academic accessibility for all students.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div><strong style="color:var(--nv-green);">§1.6 Respect privacy</strong> — Zero persistent storage. Images processed in memory only, discarded after API call. GDPR-aligned by design.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div><strong style="color:var(--nv-green);">§2.5 Thorough evaluation</strong> — Critique + refinement loop validates output quality. Confidence score communicated honestly.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div><strong style="color:var(--nv-green);">§2.9 Design for inclusion</strong> — Consent gate + safety screening ensure the system is not misused and is safe for all user groups.</div></div>
+    <div class="principle"><div class="dot dot-green"></div><div><strong style="color:var(--nv-green);">§3.1 Know your limitations</strong> — Confidence score transparently shown with colour indicators. Semi-autonomous — human approval is mandatory.</div></div>
+  </div>
+  <div class="hbox hbox-yellow">
+    <strong class="yellow">⚠️ Potential Violation: §2.5 (Bias in Evaluation)</strong><br>
+    <span style="font-size:0.85em;color:var(--nv-text);">The LLM may produce biased or inconsistent results across different handwriting styles, cultural scripts, or non-English content.
+    <strong>Mitigation:</strong> Confidence scoring, HITL mandatory approval, and human can re-run.</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 10: 4-STEP ETHICAL DECISION MODEL -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Ethical Decision Process</h3>
+  <h2>4-Step Model Applied</h2>
+  <div class="grid-2">
+    <div>
+      <div class="hbox hbox-purple">
+        <strong class="accent">1. Identify the Issue</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">AI may produce inaccurate or biased output. Users may upload sensitive content (exam papers, personal records) unknowingly.</span>
+      </div>
+      <div class="hbox hbox-purple" style="margin-top:0.4rem;">
+        <strong class="accent">2. Analyze Stakeholders</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);"><strong>Students:</strong> need accuracy · <strong>Educators:</strong> need trust · <strong>Society:</strong> needs responsible AI</span>
+      </div>
+    </div>
+    <div>
+      <div class="hbox hbox-purple">
+        <strong class="accent">3. Evaluate Alternatives</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">Full automation (risky) · Manual only (not innovative) · <strong>Semi-autonomous with HITL</strong> (chosen)</span>
+      </div>
+      <div class="hbox hbox-green" style="margin-top:0.4rem;">
+        <strong class="green">4. Justified Decision</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">Semi-autonomous agent with safety gate (Step 0), confidence scoring, and mandatory human approval before any download.</span>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.5rem;">
+    <div class="card-title">🔐 Cybersecurity Consideration</div>
+    <div style="font-size:0.74em;color:var(--nv-text);">Service account authentication (not API keys in code) · Vertex AI managed security · Rate limiting prevents abuse · No vulnerability disclosure needed as no user data is retained.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 11: SOFTWARE DEVELOPMENT & INDUSTRY PRACTICES -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Industry Practices</h3>
+  <h2>Student Project vs. Software House</h2>
+  <table class="nv-table">
+    <tr>
+      <th>Practice</th>
+      <th>Student Project (Us)</th>
+      <th>Software House</th>
+    </tr>
+    <tr>
+      <td><strong>Version Control</strong></td>
+      <td>Git (local + GitHub)</td>
+      <td>Git + CI/CD pipeline, branch policies</td>
+    </tr>
+    <tr>
+      <td><strong>Communication</strong></td>
+      <td>Team chat, shared IDE</td>
+      <td>Jira, daily standups, PRs with reviews</td>
+    </tr>
+    <tr>
+      <td><strong>Testing</strong></td>
+      <td>Manual UI testing</td>
+      <td>Unit tests, integration tests, QA teams</td>
+    </tr>
+    <tr>
+      <td><strong>Security</strong></td>
+      <td>Service account, secrets mgmt</td>
+      <td>Security audits, penetration testing</td>
+    </tr>
+    <tr>
+      <td><strong>AI Ethics</strong></td>
+      <td>Safety gate + HITL + consent</td>
+      <td>Dedicated AI ethics board, bias audits</td>
+    </tr>
+    <tr>
+      <td><strong>Deployment</strong></td>
+      <td>Streamlit Cloud</td>
+      <td>Kubernetes, multi-region, SLAs</td>
+    </tr>
+  </table>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.75em;">
+    <strong class="accent">Key Insight:</strong> We adopted professional practices (service accounts, ethical gates, audit logs) that go beyond a typical student project.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 12: IT TRENDS & AGENTIC SYSTEMS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Industry Trends</h3>
+  <h2>The Rise of Agentic AI</h2>
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">📈</div>
+      <div class="card-title">2022 — LLMs Emerge</div>
+      <div style="font-size:0.7em;color:var(--nv-text);">ChatGPT, GPT-4 — AI as a question-answering tool</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🤖</div>
+      <div class="card-title">2023–24 — AI Agents</div>
+      <div style="font-size:0.7em;color:var(--nv-text);">AutoGPT, LangChain — AI that breaks tasks into steps and uses tools</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🚀</div>
+      <div class="card-title">2025+ — Autonomous Systems</div>
+      <div style="font-size:0.7em;color:var(--nv-text);">Google Vertex AI Agents, Claude Computer Use — AI that perceives, decides, and acts</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.6rem;">
+    <div class="card-title">🎯 NoteVision in This Context</div>
+    <div style="font-size:0.75em;color:var(--nv-text);">
+      NoteVision represents this exact industry shift:<br>
+      <span class="tag tag-yellow">Phase 1: Static Tool</span> →
+      <span class="tag tag-purple">Phase 2: Agentic System</span> →
+      <span class="tag tag-green">Future: Fully Autonomous with Human Oversight</span><br><br>
+      Industry is moving towards agents that <strong>perceive context, make decisions, and learn from feedback</strong> — exactly what we built.
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 13: CAREER BENEFITS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Career Development</h3>
+  <h2>What This Project Built in Us</h2>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">🛠️ Technical Skills Gained</div>
+        <div style="font-size:0.74em;color:var(--nv-text);line-height:1.9;">
+          <span class="tag tag-purple">Agentic System Design</span>
+          <span class="tag tag-purple">LLM Integration</span>
+          <span class="tag tag-purple">Vertex AI / GCP</span>
+          <span class="tag tag-purple">Streamlit</span>
+          <span class="tag tag-purple">Service Account Auth</span>
+          <span class="tag tag-purple">Prompt Engineering</span>
+        </div>
+      </div>
+      <div class="card" style="margin-top:0.5rem;">
+        <div class="card-title">⚖️ Professional Skills Gained</div>
+        <div style="font-size:0.74em;color:var(--nv-text);line-height:1.9;">
+          <span class="tag tag-green">Ethics-First Design</span>
+          <span class="tag tag-green">ACM/IEEE Compliance</span>
+          <span class="tag tag-green">Privacy by Design</span>
+          <span class="tag tag-green">HITL Architecture</span>
+          <span class="tag tag-green">Bias Mitigation</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌐 Industry Relevance</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.9;">
+        The AI industry in 2025 is not just looking for engineers who can write code — it needs professionals who:<br><br>
+        ✅ Understand <strong>ethical AI deployment</strong><br>
+        ✅ Can design systems with <strong>human oversight</strong><br>
+        ✅ Know how to handle <strong>data privacy</strong><br>
+        ✅ Can communicate <strong>AI limitations</strong> honestly<br><br>
+        <em class="muted">This project demonstrates all four — making us industry-ready.</em>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 14: VIRTUAL WORK & SUSTAINABILITY -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Modern Work Practices</h3>
+  <h2>Virtual Work & Green Computing</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🌐 Remote Collaboration</div>
+      <div style="font-size:0.75em;color:var(--nv-text);line-height:1.85;">
+        • Deployed on <strong>Streamlit Cloud</strong> — accessible from any device, anywhere<br>
+        • Code hosted on <strong>GitHub</strong> — async collaboration<br>
+        • <strong>Streamlit Secrets</strong> for secure credential sharing<br>
+        • Vertex AI managed cloud infrastructure
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">♻️ Green Computing</div>
+      <div style="font-size:0.75em;color:var(--nv-text);line-height:1.85;">
+        • <strong>Strategy selection</strong> reduces unnecessary API calls — only the right prompt is sent<br>
+        • <strong>No image storage</strong> = zero long-term storage overhead<br>
+        • <strong>Vertex AI</strong> runs on Google's carbon-neutral infrastructure<br>
+        • <strong>Rate limiting</strong> prevents computational waste
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.6rem;">
+    <div class="card-title">⚖️ Work-Life Balance in AI Development</div>
+    <div style="font-size:0.75em;color:var(--nv-text);">The project's Human-in-the-Loop design reflects the broader principle: AI should <strong>augment human work</strong>, not replace human judgment. We preserved the student's role as the final decision-maker — a sustainable approach to AI integration in academic life.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 15: LEGAL ASPECTS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Legal Awareness</h3>
+  <h2>Legal Aspects of Computing</h2>
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <div class="card-title">📋 Developer Responsibilities</div>
+        <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+          <strong>Data Protection:</strong> We do not collect, store, or transmit user data beyond the processing pipeline<br><br>
+          <strong>User Rights:</strong> Users can reject output and cancel at any point — no lock-in<br><br>
+          <strong>Transparency:</strong> Full disclosure of AI involvement, limitations, and data handling
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="hbox hbox-yellow">
+        <strong class="yellow">PECA 2016 (Pakistan)</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">Prevention of Electronic Crimes Act. Unauthorized processing of others' data is a criminal offence. Our consent gate and IPR notice directly address this by ensuring informed use only.</span>
+      </div>
+      <div class="hbox hbox-purple" style="margin-top:0.5rem;">
+        <strong class="accent">GDPR-Aligned Design</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">No data retention beyond session · Consent obtained before processing · Right to cancel at any time</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 16: INTELLECTUAL PROPERTY RIGHTS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>IPR & Licensing</h3>
+  <h2>Intellectual Property Rights</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">©️ Ownership of NoteVision</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        NoteVision is an original student project. All code, design, and architecture are owned by the team. Dependencies (Streamlit, google-genai) are used under their respective open-source licenses (Apache 2.0, MIT).
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📄 Licensing Options</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        If commercialised:<br>
+        <span class="tag tag-green">MIT License</span> — Open source, free use<br>
+        <span class="tag tag-purple">Apache 2.0</span> — Commercial-friendly<br>
+        <span class="tag tag-yellow">Proprietary</span> — If monetised as SaaS
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.6rem;">
+    <div class="card-title">⚠️ IPR Responsibilities Placed on Users (Displayed in UI)</div>
+    <div style="font-size:0.75em;color:var(--nv-text);background:#0d1117;border-left:3px solid #667eea55;padding:0.5rem 0.8rem;border-radius:4px;margin-top:0.4rem;">
+      "⚖️ IPR Notice: Only upload content you own or have rights to process. Processing third-party copyrighted material without authorisation may violate intellectual property law."
+    </div>
+    <div style="font-size:0.72em;color:var(--nv-muted);margin-top:0.4rem;">This notice is displayed before every run. The consent gate also explicitly covers IPR responsibilities.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 17: COMPUTER CRIMES & RISKS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Risk & Security</h3>
+  <h2>Computer Crimes & Risks in NoteVision</h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">🔓 Data Theft Risk</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        <strong class="red">Risk:</strong> User's handwritten notes contain personal academic content<br><br>
+        <strong class="green">Mitigation:</strong> No persistent storage. Data exists only during the API call. Service account secured with GCP IAM.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Misuse Risk</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        <strong class="red">Risk:</strong> Users could upload exam papers, confidential documents, or others' work<br><br>
+        <strong class="green">Mitigation:</strong> Safety gate (Step 0) screens every image with AI before processing begins. User must acknowledge.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚪 Unauthorized Access</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        <strong class="red">Risk:</strong> API key exposure, credential theft<br><br>
+        <strong class="green">Mitigation:</strong> Service account JSON stored in Streamlit Secrets (encrypted). No API keys hardcoded. Rate limiting prevents abuse.
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.75em;">
+    <strong class="accent">Defence in Depth:</strong> We applied multiple layers of protection — consent gate, safety screening, service account auth, rate limiting, and HITL approval — following security-by-design principles.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 18: COMPUTER CONTRACTS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Legal Framework</h3>
+  <h2>Computer Contracts & User Agreements</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📜 Our Implicit Contract (Consent Gate)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        Before accessing NoteVision, every user must acknowledge:<br><br>
+        ✅ Data is processed by Google Gemini via Vertex AI<br>
+        ✅ No data stored permanently<br>
+        ✅ Only upload content you own<br>
+        ✅ AI output requires human review<br>
+        ✅ System is semi-autonomous
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ Developer Responsibilities</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        As developers, we are responsible for:<br><br>
+        • Accuracy of privacy claims (no storage — verified)<br>
+        • Transparency of AI involvement (disclosed in UI)<br>
+        • Accessibility of cancellation (always available)<br>
+        • Disclosure of limitations (confidence score, bias notice)
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-green" style="margin-top:0.5rem;font-size:0.75em;">
+    <strong class="green">Key Principle:</strong> A click-through consent is not just a legal formality — it represents the ethical agreement between developer and user. We designed ours to be <strong>genuinely informative</strong>, not just a legal shield.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SECTION DIVIDER: AGENTIC TRANSFORMATION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="section-div">
+  <h2>Agentic Transformation</h2>
+  <p>From a static tool to an intelligent, autonomous system</p>
+  <div style="margin-top:1.5rem;font-size:0.8em;color:var(--nv-muted);">
+    Perceive → Assess → Plan → Convert → Critique → Refine → Deliver
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 19: PHASE 1 LIMITATIONS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Agentic Transformation</h3>
+  <h2>Technical Limitations of Phase 1</h2>
+  <div class="grid-3" style="margin-bottom:0.5rem;">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🔧</div>
+      <div class="card-title">Static Logic</div>
+      <div style="font-size:0.72em;color:var(--nv-text);">One prompt for all images. No adaptation to image quality, content type, or complexity.</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🧱</div>
+      <div class="card-title">No Autonomy</div>
+      <div style="font-size:0.72em;color:var(--nv-text);">User must manually assess image quality and decide if output is acceptable. Zero automated decision-making.</div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">📉</div>
+      <div class="card-title">No Intelligence</div>
+      <div style="font-size:0.72em;color:var(--nv-text);">No feedback loop. No self-improvement. No memory across runs. No safety considerations.</div>
+    </div>
+  </div>
+  <table class="nv-table">
+    <tr><th>Phase 1 Problem</th><th>Impact</th><th>Phase 2 Solution</th></tr>
+    <tr><td>Single generic prompt</td><td>Poor quality for math/diagrams</td><td>5 strategy-specific prompts</td></tr>
+    <tr><td>No quality check</td><td>Wasted calls on blurry images</td><td>assess_image tool (Step 1)</td></tr>
+    <tr><td>No output validation</td><td>Errors delivered to user</td><td>Critique + refinement loop</td></tr>
+    <tr><td>No ethical safeguards</td><td>Any content processed blindly</td><td>Safety gate + consent gate</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 20: AGENTIC SYSTEM CONCEPT -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Agentic Systems</h3>
+  <h2>What Makes a System "Agentic"?</h2>
+  <div class="grid-2">
+    <div>
+      <div class="pipe-step done"><span class="pipe-icon">👁️</span><div><div class="pipe-name">Perception</div><div class="pipe-desc">Sensing and understanding the environment</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🧠</span><div><div class="pipe-name">Decision-Making</div><div class="pipe-desc">Selecting action based on perceived state</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">⚙️</span><div><div class="pipe-name">Action</div><div class="pipe-desc">Executing the chosen strategy</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">📚</span><div><div class="pipe-name">Learning</div><div class="pipe-desc">Improving from feedback and memory</div></div></div>
+    </div>
+    <div>
+      <div class="pipe-step done"><span class="pipe-icon">🔍</span><div><div class="pipe-name">NoteVision: assess_image</div><div class="pipe-desc">Analyses quality, math, diagrams, density</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🎯</span><div><div class="pipe-name">NoteVision: select_strategy</div><div class="pipe-desc">Chooses from 5 context-specific strategies</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🤖</span><div><div class="pipe-name">NoteVision: convert + critique</div><div class="pipe-desc">Converts then reviews its own output</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">✨</span><div><div class="pipe-name">NoteVision: refine + memory</div><div class="pipe-desc">Fixes issues; stores result in memory</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 21: GAP ANALYSIS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Gap Analysis</h3>
+  <h2>Why Phase 1 Was NOT Agentic</h2>
+  <table class="nv-table">
+    <tr><th>Agentic Requirement</th><th>Phase 1</th><th>Phase 2 (NoteVision Agent)</th></tr>
+    <tr><td>Environmental Perception</td><td class="red">❌ No image assessment</td><td class="green">✅ assess_image tool (quality, math, diagrams)</td></tr>
+    <tr><td>Autonomous Decision-Making</td><td class="red">❌ One fixed strategy</td><td class="green">✅ select_strategy (5 strategies, rule-based)</td></tr>
+    <tr><td>Goal-Directed Behavior</td><td class="red">❌ Convert only</td><td class="green">✅ Perceive → Decide → Act → Critique → Refine</td></tr>
+    <tr><td>Learning / Adaptation</td><td class="red">❌ No feedback loop</td><td class="green">✅ Critique drives refinement; memory informs context</td></tr>
+    <tr><td>Memory</td><td class="red">❌ Stateless</td><td class="green">✅ Short-term (5 results) + long-term (full history)</td></tr>
+    <tr><td>Ethical Safeguards</td><td class="red">❌ None</td><td class="green">✅ Consent gate, safety gate, HITL ×2</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 22: AGENTIC VISION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Transformation</h3>
+  <h2>From Tool to Agent</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🔧 Phase 1: Reactive Tool</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        User uploads → System converts → User downloads<br><br>
+        • <strong>User-driven:</strong> User decides quality<br>
+        • <strong>Reactive:</strong> Waits for instruction<br>
+        • <strong>Static:</strong> Same behaviour every time<br>
+        • <strong>Blind:</strong> No awareness of image type
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🤖 Phase 2: Proactive Agent</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        Agent screens → assesses → decides → converts → critiques → refines → user approves<br><br>
+        • <strong>System-driven:</strong> Agent evaluates independently<br>
+        • <strong>Proactive:</strong> Assesses BEFORE converting<br>
+        • <strong>Adaptive:</strong> Picks best strategy per image<br>
+        • <strong>Self-aware:</strong> Critiques and corrects itself
+      </div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:0.8rem;font-size:0.8em;">
+    <span class="tag tag-yellow">Static Tool</span>
+    <span style="color:var(--nv-muted);margin:0 0.5rem;">→</span>
+    <span class="tag tag-purple">Perceive + Decide</span>
+    <span style="color:var(--nv-muted);margin:0 0.5rem;">→</span>
+    <span class="tag tag-green">Act + Learn</span>
+    <span style="color:var(--nv-muted);margin:0 0.5rem;">→</span>
+    <span class="tag tag-green">Ethical Agent</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 23: AGENT ARCHITECTURE -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>System Design</h3>
+  <h2>Agent Architecture</h2>
+  <div class="grid-2">
+    <div>
+      <div class="pipe-step done"><span class="pipe-icon">🛡️</span><div><div class="pipe-name">Step 0: Safety Check</div><div class="pipe-desc">Ethical gate — screens content type</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🔍</span><div><div class="pipe-name">Step 1: Perceive</div><div class="pipe-desc">assess_image → ImageAssessment</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🧠</span><div><div class="pipe-name">Step 2: Decide</div><div class="pipe-desc">select_strategy → strategy + prompt</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">⚙️</span><div><div class="pipe-name">Step 3: Act</div><div class="pipe-desc">convert → Markdown output</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">🔎</span><div><div class="pipe-name">Step 4: Critique</div><div class="pipe-desc">Self-review → issues list</div></div></div>
+      <div class="pipe-step done"><span class="pipe-icon">✨</span><div><div class="pipe-name">Step 5: Refine</div><div class="pipe-desc">Apply critique → refined Markdown</div></div></div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">🧠 Memory Components</div>
+        <div style="font-size:0.72em;color:var(--nv-text);line-height:1.8;">
+          <strong>AgentMemory:</strong><br>
+          • Short-term: Last 5 results (injected as context)<br>
+          • Long-term: Full session history (audit trail)<br><br>
+          <strong>External Tools:</strong><br>
+          • Google Gemini 2.5 Flash via Vertex AI<br>
+          • PIL for image processing<br>
+          • python-docx for export
+        </div>
+      </div>
+      <div class="card" style="margin-top:0.5rem;">
+        <div class="card-title">🟢 HITL Gates</div>
+        <div style="font-size:0.72em;color:var(--nv-text);">
+          Gate 1 (Step 0): Safety concern → user must acknowledge<br>
+          Gate 2 (Final): Accept / Reject / Re-run
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 24: AGENT TYPE SELECTION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Agent Classification</h3>
+  <h2>Agent Type Selection</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🎯 Goal-Based Agent</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        NoteVision is a <strong>goal-based agent</strong> with a fixed objective: <em>produce the highest-quality Markdown transcription of the uploaded image.</em><br><br>
+        Every decision (strategy selection, refinement trigger) is evaluated against this goal. The confidence score quantifies how well the goal was achieved.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📖 Learning Component</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        NoteVision has a <strong>limited learning component</strong>:<br>
+        • Past conversions injected as context (memory-based adaptation)<br>
+        • Critique feedback drives refinement (in-loop learning)<br><br>
+        <em class="muted">It does not train a model — but it adapts its output based on self-generated feedback.</em>
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-green" style="margin-top:0.5rem;font-size:0.78em;">
+    <strong class="green">Justification for Goal-Based + Semi-Autonomous:</strong> Academic content requires deterministic, auditable decision logic (rule-based strategy selection) combined with LLM intelligence for the conversion task itself — not pure machine learning, which would be opaque and unauditable.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 25: OPERATIONAL WORKFLOW -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Operational Cycle</h3>
+  <h2>Observe → Interpret → Decide → Act → Learn</h2>
+  <div class="grid-2">
+    <div>
+      <div class="hbox hbox-purple"><strong class="accent">👁️ Observe</strong><br><span style="font-size:0.85em;color:var(--nv-text);">User uploads image. Agent receives PIL Image object.</span></div>
+      <div class="hbox hbox-purple" style="margin-top:0.4rem;"><strong class="accent">🔍 Interpret</strong><br><span style="font-size:0.85em;color:var(--nv-text);">assess_image() evaluates quality, math, diagrams, density. Returns structured ImageAssessment.</span></div>
+      <div class="hbox hbox-purple" style="margin-top:0.4rem;"><strong class="accent">🧠 Decide</strong><br><span style="font-size:0.85em;color:var(--nv-text);">select_strategy() applies rule-based logic → picks 1 of 5 strategy prompts.</span></div>
+    </div>
+    <div>
+      <div class="hbox hbox-green"><strong class="green">⚙️ Act</strong><br><span style="font-size:0.85em;color:var(--nv-text);">convert() sends image + strategy prompt to Gemini. Returns Markdown.</span></div>
+      <div class="hbox hbox-green" style="margin-top:0.4rem;"><strong class="green">🔎 Learn (Critique)</strong><br><span style="font-size:0.85em;color:var(--nv-text);">critique() evaluates output. refine() fixes issues. Result stored in AgentMemory.</span></div>
+      <div class="hbox hbox-yellow" style="margin-top:0.4rem;"><strong class="yellow">🤝 HITL Gate</strong><br><span style="font-size:0.85em;color:var(--nv-text);">User accepts/rejects/re-runs. Only accepted output can be downloaded.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 26: INTELLIGENCE LAYER -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Intelligence Design</h3>
+  <h2>The Intelligence Layer</h2>
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🤖</div>
+      <div class="card-title">LLM (Gemini 2.5 Flash)</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        Used for: image assessment, conversion, self-critique, refinement, safety screening<br><br>
+        <em class="muted">Provides vision + language intelligence</em>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">📏</div>
+      <div class="card-title">Rules (Deterministic)</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        Strategy selection is <strong>rule-based</strong>, not LLM-driven.<br><br>
+        Ensures auditability: the system can always explain WHY it chose a strategy.<br><br>
+        <em class="muted">Predictable + transparent</em>
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🧠</div>
+      <div class="card-title">Memory (Context)</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        Last 3 results injected as context into conversion prompt.<br><br>
+        Enables consistency across multiple note images in one session.<br><br>
+        <em class="muted">Session-aware intelligence</em>
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.76em;">
+    <strong class="accent">Design Principle:</strong> We use LLMs where intelligence is needed (vision + language) and rules where auditability is required (decision logic). This hybrid approach is more trustworthy than a fully LLM-driven agent.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 27: MEMORY & CONTEXT -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Memory Architecture</h3>
+  <h2>Short-Term vs. Long-Term Memory</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">⚡ Short-Term Memory (AgentMemory.agent_short_term)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        • Stores last <strong>5 conversion results</strong><br>
+        • Injected into each new conversion as context<br>
+        • Helps agent maintain consistency (e.g., same LaTeX style, same heading format)<br>
+        • Cleared when window exceeds 5<br><br>
+        <em class="muted">Analogous to working memory in humans</em>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📚 Long-Term Memory (AgentMemory.agent_history)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        • Stores <strong>all conversions</strong> in this session<br>
+        • Displayed in sidebar as "Recent History"<br>
+        • Shows filename, quality, strategy, confidence<br>
+        • Acts as an audit trail<br><br>
+        <em class="muted">Persisted in Streamlit session_state</em>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.5rem;">
+    <div class="card-title">🔒 Privacy Note on Memory</div>
+    <div style="font-size:0.74em;color:var(--nv-text);">Memory is stored ONLY in the browser's Streamlit session. It is NOT sent to any external server. On browser refresh, all memory is cleared. This ensures user data never persists beyond the active session.</div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 28: AUTONOMY LEVEL -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Autonomy Design</h3>
+  <h2>Semi-Autonomous — A Justified Choice</h2>
+  <div class="grid-2">
+    <div>
+      <div class="hbox hbox-red">
+        <strong class="red">Full Autonomy (Rejected)</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">Agent processes image, produces output, sends it to user automatically. No human check.</span><br>
+        <span style="font-size:0.78em;color:var(--nv-muted);">Risk: Wrong academic content delivered with no oversight.</span>
+      </div>
+      <div class="hbox hbox-yellow" style="margin-top:0.5rem;">
+        <strong class="yellow">Manual Only (Phase 1)</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">User does everything manually — not innovative, defeats the purpose of AI.</span>
+      </div>
+    </div>
+    <div class="hbox hbox-green">
+      <strong class="green">Semi-Autonomous (Chosen ✓)</strong><br>
+      <span style="font-size:0.85em;color:var(--nv-text);">Agent autonomously perceives, decides, converts, critiques, and refines. But human approves before any output is released.<br><br>
+      <strong>Why justified:</strong> Academic content errors have real-world consequences. The HITL gate is a professional responsibility, not an inconvenience.</span>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0.5rem;text-align:center;font-size:0.75em;">
+    <span class="tag tag-green">Perception: Autonomous</span>
+    <span class="tag tag-green">Conversion: Autonomous</span>
+    <span class="tag tag-green">Critique: Autonomous</span>
+    <span class="tag tag-yellow">Safety Gate: HITL</span>
+    <span class="tag tag-yellow">Final Output: HITL</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 29: HUMAN-IN-THE-LOOP -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Human Control</h3>
+  <h2>Human-in-the-Loop: Two Gates</h2>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🛡️ Gate 1 — Ethical Safety Gate (Step 0)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        <strong>When triggered:</strong> Agent detects exam papers, personal records, confidential documents, or inappropriate content<br><br>
+        <strong>What happens:</strong> Pipeline halts. User sees amber warning with concern type and recommendation.<br><br>
+        <strong>User choices:</strong><br>
+        ✋ Acknowledge & Take Responsibility → proceed<br>
+        🚫 Cancel — Do Not Process → abort
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🟢 Gate 2 — Output Approval Gate (Final)</div>
+      <div style="font-size:0.74em;color:var(--nv-text);line-height:1.85;">
+        <strong>Always shown</strong> after agent completes all 5 steps.<br><br>
+        <strong>User reviews:</strong> Refined output, self-critique, activity log, ethics tab<br><br>
+        <strong>User choices:</strong><br>
+        ✅ Accept Output → downloads unlocked<br>
+        ❌ Reject Output → result discarded<br>
+        🔁 Re-run Agent → fresh pipeline run
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-purple" style="margin-top:0.5rem;font-size:0.76em;">
+    <strong class="accent">Key Design Principle:</strong> The agent suggests — the human decides. No output reaches the user without explicit human approval.
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 30: ETHICAL AGENT DESIGN -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Responsible AI</h3>
+  <h2>Ethical Agent Design</h2>
+  <div class="grid-2">
+    <div>
+      <div class="hbox hbox-purple">
+        <strong class="accent">🔒 Privacy</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">No image or personal data stored beyond API call. Session memory cleared on refresh. GDPR-aligned.</span>
+      </div>
+      <div class="hbox hbox-yellow" style="margin-top:0.5rem;">
+        <strong class="yellow">⚠️ Bias Mitigation</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">LLM bias acknowledged in Ethics tab. Confidence score shows uncertainty. Human approval gate as final safeguard.</span>
+      </div>
+    </div>
+    <div>
+      <div class="hbox hbox-green">
+        <strong class="green">👁️ Transparency</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">Full Activity Log visible. Strategy selected shown with reason. Confidence meter displayed. Ethics & Compliance tab per run.</span>
+      </div>
+      <div class="hbox hbox-green" style="margin-top:0.5rem;">
+        <strong class="green">🎮 User Control</strong><br>
+        <span style="font-size:0.85em;color:var(--nv-text);">Accept / Reject / Re-run at any time. Safety gate gives Cancel option. Consent can be reviewed on reload.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 31: RISK ASSESSMENT -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Risk Management</h3>
+  <h2>Risk Assessment</h2>
+  <table class="nv-table">
+    <tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th></tr>
+    <tr>
+      <td>Incorrect OCR output</td>
+      <td class="yellow">Medium</td>
+      <td class="red">High (academic)</td>
+      <td>Critique loop + confidence score + HITL approval</td>
+    </tr>
+    <tr>
+      <td>LLM bias / handwriting style</td>
+      <td class="yellow">Medium</td>
+      <td class="yellow">Medium</td>
+      <td>Confidence indicator + human review + re-run option</td>
+    </tr>
+    <tr>
+      <td>Misuse (exam/confidential docs)</td>
+      <td class="yellow">Medium</td>
+      <td class="red">High (legal)</td>
+      <td>Safety gate screens every upload before processing</td>
+    </tr>
+    <tr>
+      <td>Over-automation / no oversight</td>
+      <td class="green">Low</td>
+      <td class="red">High</td>
+      <td>Semi-autonomous design — HITL gate is mandatory</td>
+    </tr>
+    <tr>
+      <td>Data privacy breach</td>
+      <td class="green">Low</td>
+      <td class="red">High</td>
+      <td>No persistent storage, service account auth, Vertex AI</td>
+    </tr>
+    <tr>
+      <td>API quota exhaustion</td>
+      <td class="yellow">Medium</td>
+      <td class="yellow">Medium</td>
+      <td>Rate limiting (20/session, 10s cooldown), retry logic</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 32: SAFETY MECHANISMS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Safety Architecture</h3>
+  <h2>Safety Mechanisms</h2>
+  <div class="grid-3">
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">📋</div>
+      <div class="card-title">Logging</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        Full activity log per run. Every agent decision (strategy selected, critique result, confidence) is recorded and visible to the user in the Activity Log tab.
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">🔁</div>
+      <div class="card-title">Override</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        User can Reject output at any time and discard results. Re-run triggers a fresh pipeline. Safety gate allows cancellation. No irreversible actions.
+      </div>
+    </div>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:2em;">💡</div>
+      <div class="card-title">Explainability</div>
+      <div style="font-size:0.7em;color:var(--nv-text);line-height:1.8;">
+        Strategy badge shows WHICH strategy and WHY. Assessment panel shows HOW image was perceived. Confidence meter shows certainty. Ethics tab shows principles applied.
+      </div>
+    </div>
+  </div>
+  <div class="hbox hbox-green" style="margin-top:0.5rem;font-size:0.76em;">
+    <strong class="green">Complete Safety Stack:</strong>
+    <span class="tag tag-yellow">Consent Gate</span>
+    <span class="tag tag-yellow">Safety Gate (HITL ×1)</span>
+    <span class="tag tag-purple">Rate Limiting</span>
+    <span class="tag tag-purple">Confidence Scoring</span>
+    <span class="tag tag-green">Activity Log</span>
+    <span class="tag tag-green">Output Approval (HITL ×2)</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 33: COMPARATIVE ANALYSIS -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section>
+  <h3>Comparative Analysis</h3>
+  <h2>Phase 1 vs. Phase 2</h2>
+  <table class="nv-table">
+    <tr><th>Feature</th><th>Phase 1 (Tool)</th><th>Phase 2 (Agent)</th></tr>
+    <tr><td><strong>Control</strong></td><td class="yellow">User-driven</td><td class="green">System-driven with HITL</td></tr>
+    <tr><td><strong>Intelligence</strong></td><td class="red">Static (1 strategy)</td><td class="green">Adaptive (5 strategies)</td></tr>
+    <tr><td><strong>Behavior</strong></td><td class="yellow">Reactive</td><td class="green">Proactive (assesses before acting)</td></tr>
+    <tr><td><strong>Memory</strong></td><td class="red">None</td><td class="green">Short-term + Long-term</td></tr>
+    <tr><td><strong>Quality Assurance</strong></td><td class="red">None</td><td class="green">Critique + Refinement loop</td></tr>
+    <tr><td><strong>Safety</strong></td><td class="red">None</td><td class="green">Consent gate + Safety gate</td></tr>
+    <tr><td><strong>Transparency</strong></td><td class="red">None</td><td class="green">Strategy badge + Activity log + Ethics tab</td></tr>
+    <tr><td><strong>Ethics</strong></td><td class="red">Not considered</td><td class="green">ACM/IEEE aligned, IPR notices, bias disclosed</td></tr>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SLIDE 34: CONCLUSION -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section class="title-slide">
+  <h1 style="font-size:1.8em;">NoteVision Agent</h1>
+  <h2 style="color:#a5b4fc;font-size:0.95em;font-weight:400;margin-top:0.5rem;">A Complete Agentic System — Built with Professional Responsibility</h2>
+  <div class="grid-2" style="margin-top:1.2rem;text-align:left;">
+    <div class="card">
+      <div class="card-title">✅ What We Delivered</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.85;">
+        6-step agentic pipeline<br>
+        5 adaptive strategies<br>
+        2 HITL safety gates<br>
+        ACM/IEEE compliant design<br>
+        Full audit log + ethics tab<br>
+        GDPR-aligned data handling
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🎯 CLOs Addressed</div>
+      <div style="font-size:0.72em;color:var(--nv-text);line-height:1.85;">
+        <strong>CLO 4:</strong> ACM/IEEE ethics in every design decision<br>
+        <strong>CLO 5:</strong> IPR notice + consent gate<br>
+        <strong>CLO 6:</strong> Privacy-by-design, PECA awareness<br>
+        <strong>CLO 8:</strong> Industry-aligned agentic AI system
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:1rem;font-size:0.7em;color:var(--nv-muted);">
+    Powered by Google Gemini 2.5 Flash · Vertex AI · Streamlit
+  </div>
+</section>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'slide',
+  transitionSpeed: 'fast',
+  progress: true,
+  controls: true,
+  center: false,
+  width: 1280,
+  height: 720,
+  margin: 0.04,
+});
+</script>
+</body>
+</html>

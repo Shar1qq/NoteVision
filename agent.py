@@ -37,6 +37,17 @@ class ImageAssessment:
 
 
 @dataclass
+class SafetyResult:
+    """Result of the agent's ethical safety screening gate (Step 0).
+    Implements responsible AI per ACM/IEEE Code of Ethics §1.6, §2.9.
+    """
+    is_safe: bool
+    concern_type: str   # "none" | "exam_paper" | "personal_data" | "confidential" | "inappropriate"
+    explanation: str
+    recommendation: str
+
+
+@dataclass
 class ConversionResult:
     """Full output of a single agent run."""
     timestamp: str
@@ -48,6 +59,10 @@ class ConversionResult:
     refined_markdown: str
     confidence: float
     agent_log: list[str] = field(default_factory=list)
+    safety_result: dict = field(default_factory=lambda: {
+        "is_safe": True, "concern_type": "none",
+        "explanation": "Not screened.", "recommendation": "Safe to process."
+    })
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -120,7 +135,7 @@ class AgentTools:
 
     def __init__(self, client: genai.Client):
         self.client = client
-        self._model = "models/gemini-2.0-flash"
+        self._model = "gemini-2.5-flash"
 
     # ── Tool 1: Image Quality Assessment ─────────────────────────────────────
 
@@ -168,15 +183,85 @@ Analyse this image and respond with ONLY valid JSON (no markdown, no explanation
                 notes="Assessment failed; using default strategy."
             )
 
+    # ── Tool 1b: Ethical Safety Screening ──────────────────────────────────────
+
+    def safety_check(self, image: Image.Image) -> SafetyResult:
+        """
+        TOOL: safety_check  (Ethical Gate — ACM/IEEE §1.6 Respect Privacy, §2.9 Design Inclusive)
+        Screens content for sensitive, confidential or inappropriate material
+        BEFORE any processing occurs. This is a Human-in-the-Loop checkpoint.
+        """
+        img_bytes = self._to_bytes(image)
+        prompt = """You are an ethical content screener for an AI document processing system.
+
+Analyse this image and respond with ONLY valid JSON (no markdown):
+{
+  "is_safe": true | false,
+  "concern_type": "none" | "exam_paper" | "personal_data" | "confidential" | "inappropriate",
+  "explanation": "<one sentence, or 'No concerns detected.'>",
+  "recommendation": "<one sentence advice, or 'Safe to process.'>"
+}
+
+Flag is_safe as false ONLY if the image clearly shows:
+- An active exam or test paper with visible questions/answers (academic integrity)
+- Personal medical or legal records (data privacy)
+- Documents explicitly labelled CONFIDENTIAL or RESTRICTED
+- Clearly inappropriate or harmful content"""
+        try:
+            response = self.client.models.generate_content(
+                model=self._model,
+                contents=[prompt, types.Part.from_bytes(data=img_bytes, mime_type="image/png")]
+            )
+            raw = response.text.strip()
+            if raw.startswith("```"):
+                raw = "\n".join(raw.split("\n")[1:])
+            if raw.endswith("```"):
+                raw = "\n".join(raw.split("\n")[:-1])
+            data = json.loads(raw)
+            return SafetyResult(**data)
+        except Exception:
+            return SafetyResult(
+                is_safe=True,
+                concern_type="none",
+                explanation="Safety screening unavailable; proceeding with standard caution.",
+                recommendation="Safe to process."
+            )
+
     # ── Tool 2: Strategy Selector ─────────────────────────────────────────────
 
-    def select_strategy(self, assessment: ImageAssessment) -> tuple[str, str]:
+    def select_strategy(self, assessment: ImageAssessment,
+                          diagram_mode: bool = True) -> tuple[str, str]:
         """
         TOOL: select_strategy
         Maps assessment → (strategy_name, system_prompt).
+        diagram_mode=True  → generate Mermaid xychart-beta blocks.
+        diagram_mode=False → describe graphs/diagrams in plain prose.
         This is the agent's DECISION step – no LLM required, rule-based.
         """
-        if assessment.has_math and assessment.quality == "good":
+        if assessment.has_diagrams and assessment.has_math:
+            strategy = "math_and_diagrams"
+            if diagram_mode:
+                prompt = _build_prompt(
+                    focus="The notes contain BOTH mathematical content AND scientific graphs or diagrams. "
+                          "Render ALL math as LaTeX (inline $ or block $$). "
+                          "For EVERY graph or plot, generate a ```mermaid\nxychart-beta``` block using EXACTLY this format:\n"
+                          "xychart-beta\ntitle \"Graph Name\"\nx-axis [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]\ny-axis \"y-label\" 0 --> 100\nline [0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11]\n"
+                          "RULES: ALWAYS start from origin (x=0, y=0). Use 12 points for smooth curves. "
+                          "x-axis must be plain integers only. No subscripts (write T1 not T\u2081), no Greek letters, no special chars in labels. "
+                          "For two curves on the same graph, add a second 'line' entry with its own 12 values starting from 0.",
+                    extra="After each mermaid block add one italic caption. Double-check all LaTeX syntax."
+                )
+            else:
+                prompt = _build_prompt(
+                    focus="The notes contain BOTH mathematical content AND scientific graphs or diagrams. "
+                          "Render ALL math as LaTeX (inline $ or block $$). "
+                          "For EVERY graph or diagram, write a clear prose paragraph explaining: "
+                          "what the axes represent, the shape of the curve(s), key data points, "
+                          "and what the graph demonstrates scientifically. "
+                          "Label each explanation with the graph title as a bold heading.",
+                    extra="Do NOT produce any mermaid or code blocks for graphs. Double-check all LaTeX syntax."
+                )
+        elif assessment.has_math and assessment.quality == "good":
             strategy = "math_focused"
             prompt = _build_prompt(
                 focus="Pay special attention to every mathematical formula, equation, "
@@ -194,12 +279,24 @@ Analyse this image and respond with ONLY valid JSON (no markdown, no explanation
             )
         elif assessment.has_diagrams:
             strategy = "structure_aware"
-            prompt = _build_prompt(
-                focus="The notes contain diagrams or flowcharts. Represent these as "
-                      "ASCII diagrams or Mermaid code blocks where possible. Capture "
-                      "all arrows, labels, and relationships.",
-                extra="Use ``` mermaid blocks for any flowcharts or mind-maps."
-            )
+            if diagram_mode:
+                prompt = _build_prompt(
+                    focus="The notes contain diagrams, graphs, or flowcharts. "
+                          "For flowcharts and mind-maps use ```mermaid\nflowchart TD``` blocks. "
+                          "For x-y scientific plots use ```mermaid\nxychart-beta``` with format:\n"
+                          "xychart-beta\ntitle \"Name\"\nx-axis [0,1,2,3,4,5,6,7,8,9,10,11]\ny-axis \"label\" 0 --> 100\nline [0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11]\n"
+                          "RULES: ALWAYS start from origin (x=0, y=0). Use 12 points for smooth curves. x-axis integers only, no subscripts or special chars.",
+                    extra="Every diagram MUST be a mermaid block. No plain text diagram descriptions."
+                )
+            else:
+                prompt = _build_prompt(
+                    focus="The notes contain diagrams, graphs, or flowcharts. "
+                          "For each diagram or graph, write a clear prose paragraph with a bold heading for its title. "
+                          "Explain: what the diagram shows, all labelled components, arrows and relationships, "
+                          "and what it illustrates conceptually. For plots, describe axis labels, "
+                          "curve shape, trend, and key takeaway.",
+                    extra="Do NOT produce any mermaid or code blocks. Describe everything in structured Markdown prose."
+                )
         elif assessment.handwriting_density == "sparse":
             strategy = "detail_preserving"
             prompt = _build_prompt(
@@ -226,6 +323,7 @@ Analyse this image and respond with ONLY valid JSON (no markdown, no explanation
         if context:
             full_prompt = f"{system_prompt}\n\n[Session context]\n{context}"
 
+        last_error: Optional[Exception] = None
         for attempt in range(3):
             try:
                 response = self.client.models.generate_content(
@@ -246,14 +344,15 @@ Analyse this image and respond with ONLY valid JSON (no markdown, no explanation
                     text = "\n".join(lines)
                 return text
             except Exception as e:
+                last_error = e
                 err = str(e)
                 if ("429" in err or "RESOURCE_EXHAUSTED" in err or
                         "503" in err or "UNAVAILABLE" in err):
                     if attempt < 2:
                         time.sleep(2 ** attempt * 2)
                         continue
-                return None
-        return None
+                raise RuntimeError(f"Gemini API error: {e}") from e
+        raise RuntimeError(f"Conversion failed after retries: {last_error}")
 
     # ── Tool 4: Self-Critique ─────────────────────────────────────────────────
 
@@ -362,6 +461,8 @@ Rules:
 - Do NOT summarize or paraphrase
 - Maintain original academic wording
 - Mark unclear content with (?)
+- For any x-y graph or scientific plot, generate a ```mermaid\nxychart-beta``` block. Use ONLY this exact format (no subscripts, no special chars, plain ASCII labels):
+  xychart-beta\n  title "Graph Title"\n  x-axis [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]\n  y-axis "y-label" 0 --> 100\n  line [0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11]\n  IMPORTANT: always start from x=0 y=0 (origin). Use 12 points for smooth curves.
 
 Output only Markdown."""
     if focus:
@@ -389,7 +490,8 @@ class NoteVisionAgent:
         self.tools = AgentTools(client)
 
     def run(self, image: Image.Image, filename: str,
-            log_callback=None) -> ConversionResult:
+            log_callback=None, safety_result: dict = None,
+            diagram_mode: bool = True) -> ConversionResult:
         """
         Execute the agent loop. log_callback(str) receives real-time status
         messages for display in the UI.
@@ -415,7 +517,7 @@ class NoteVisionAgent:
 
         # ── Step 2: DECIDE – choose strategy ─────────────────────────────────
         _log("🧠 [Agent] Deciding conversion strategy…")
-        strategy, system_prompt = self.tools.select_strategy(assessment)
+        strategy, system_prompt = self.tools.select_strategy(assessment, diagram_mode)
         _log(f"🎯 [Agent] Strategy selected → '{strategy}'")
 
         # Inject memory context (short-term)
@@ -425,7 +527,7 @@ class NoteVisionAgent:
         _log("⚙️ [Agent] Converting image to Markdown…")
         markdown = self.tools.convert(image, system_prompt, context)
         if not markdown:
-            raise RuntimeError("Conversion failed after retries.")
+            raise RuntimeError("Conversion returned empty response.")
 
         # ── Step 4: CRITIQUE – self-review ───────────────────────────────────
         _log("🔎 [Agent] Running self-critique on output…")
@@ -451,6 +553,10 @@ class NoteVisionAgent:
             refined_markdown=refined,
             confidence=confidence,
             agent_log=log,
+            safety_result=safety_result or {
+                "is_safe": True, "concern_type": "none",
+                "explanation": "Pre-screened externally.", "recommendation": "Safe to process."
+            },
         )
 
         # Store in memory
