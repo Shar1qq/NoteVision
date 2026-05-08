@@ -1,8 +1,8 @@
 """
-NoteVision – Phase 2 Agentic Application
-==========================================
-Transforms Phase 1 (static convert-on-click tool) into a fully agentic system:
-  Perceive → Assess → Plan → Convert → Critique → Refine → Deliver
+NoteVision – Intelligent Handwriting Converter
+===============================================
+AI-powered system that perceives, assesses, converts, critiques and refines
+handwritten notes into structured digital documents.
 
 UI layers:
   - Agent Activity Log   : real-time step-by-step transparency
@@ -33,8 +33,8 @@ from PIL import Image
 # ─────────────────────────────────────────────────────────────────────────────
 
 st.set_page_config(
-    page_title="NoteVision Agent – Phase 2",
-    page_icon="🤖",
+    page_title="NoteVision",
+    page_icon="📝",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -382,9 +382,8 @@ if not st.session_state.consent_given:
 
 st.markdown("""
 <div class="nv-header">
-  <h1>🤖 NoteVision Agent</h1>
-  <p>Phase 2 &nbsp;·&nbsp; Agentic Handwriting Converter &nbsp;·&nbsp;
-     Perceive → Assess → Plan → Convert → Critique → Refine → Deliver</p>
+  <h1>📝 NoteVision</h1>
+  <p>Intelligent Handwriting Converter &nbsp;·&nbsp; Powered by Google Gemini</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -393,7 +392,7 @@ st.markdown("""
 # ─────────────────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("### 🧠 Agent Memory")
+    st.markdown("### 🧠 Memory Dashboard")
     st.markdown(f"""
 <div class="nv-card">
   <div class="nv-card-title">Session Memory</div>
@@ -635,7 +634,7 @@ if uploaded is not None:
                     )
                 return '<div class="pipeline-container">' + "".join(rows) + "</div>"
 
-            st.markdown('<div class="nv-card-title" style="margin-bottom:0.5rem;">⚡ Agent Pipeline</div>', unsafe_allow_html=True)
+            st.markdown('<div class="nv-card-title" style="margin-bottom:0.5rem;">⚡ Processing Pipeline</div>', unsafe_allow_html=True)
             log_placeholder = st.empty()
 
             def _update_log(msg: str):
@@ -643,7 +642,7 @@ if uploaded is not None:
                 log_placeholder.markdown(_build_pipeline_html(log_lines), unsafe_allow_html=True)
 
             try:
-                with st.spinner("⚙️ Agent running…"):
+                with st.spinner("⚙️ Processing…"):
                     result = agent.run(
                         image,
                         filename=uploaded.name,
@@ -656,7 +655,7 @@ if uploaded is not None:
                 st.session_state.last_time = _time.time()
                 st.rerun()
             except Exception as e:
-                st.error(f"Agent failed: {e}")
+                st.error(f"Processing failed: {e}")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Results Panel (after agent run)
@@ -666,7 +665,7 @@ result = st.session_state.get("agent_result")
 if result is not None:
 
     st.markdown("---")
-    st.markdown("## 📊 Agent Report")
+    st.markdown("## 📊 Conversion Report")
 
     # ── Row 1: Assessment + Strategy + Confidence ─────────────────────────────
     c1, c2, c3 = st.columns([2, 1.5, 1.5])
@@ -739,7 +738,7 @@ if result is not None:
 """, unsafe_allow_html=True)
 
     # ── Tabs: Output / Critique / Log / Ethics ─────────────────────────────────────
-    st.markdown("### 📄 Agent Output")
+    st.markdown("### 📄 Output")
     tab_out, tab_crit, tab_log, tab_eth = st.tabs([
         "✅ Refined Output", "🔎 Self-Critique", "🔄 Activity Log", "⚖️ Ethics & Compliance"
     ])
@@ -882,7 +881,7 @@ mermaid.run().catch(function() {{
             st.session_state.agent_result = None
             st.rerun()
     with col_rr:
-        if st.button("🔁 Re-run Agent", use_container_width=True):
+        if st.button("🔁 Re-run", use_container_width=True):
             st.session_state.agent_result = None
             st.session_state.hitl_accepted = None
             st.rerun()
@@ -943,7 +942,7 @@ mermaid.run().catch(function() {{
             )
 
     elif st.session_state.hitl_accepted is False:
-        st.warning("Output rejected. Upload a new image or re-run the agent.")
+        st.warning("Output rejected. Upload a new image or adjust the settings and re-run.")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Footer
@@ -953,8 +952,7 @@ st.markdown("---")
 st.markdown("""
 <div style="text-align:center;padding:1.5rem 0;">
   <p style="color:#4a5568;font-size:0.85rem;margin:0;">
-    NoteVision Agent &nbsp;·&nbsp; Phase 2 Agentic System &nbsp;·&nbsp;
-    Perceive → Assess → Plan → Convert → Critique → Refine → Deliver
+    NoteVision &nbsp;·&nbsp; Intelligent Handwriting Converter
   </p>
   <p style="color:#3d4559;font-size:0.75rem;margin-top:6px;">
     Powered by Google Gemini 2.5 Flash via Vertex AI &nbsp;|&nbsp; Built with Streamlit

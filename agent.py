@@ -249,16 +249,17 @@ Flag is_safe as false ONLY if the image clearly shows:
                           "RULES: ALWAYS start from origin (x=0, y=0). Use 12 points for smooth curves. "
                           "x-axis must be plain integers only. No subscripts (write T1 not T\u2081), no Greek letters, no special chars in labels. "
                           "For two curves on the same graph, add a second 'line' entry with its own 12 values starting from 0.",
-                    extra="After each mermaid block add one italic caption. Double-check all LaTeX syntax."
+                    extra="After each mermaid block write one italic sentence starting with 'This graph shows...' explaining what the graph represents scientifically and its key takeaway. Double-check all LaTeX syntax."
                 )
             else:
                 prompt = _build_prompt(
                     focus="The notes contain BOTH mathematical content AND scientific graphs or diagrams. "
                           "Render ALL math as LaTeX (inline $ or block $$). "
-                          "For EVERY graph or diagram, write a clear prose paragraph explaining: "
-                          "what the axes represent, the shape of the curve(s), key data points, "
-                          "and what the graph demonstrates scientifically. "
-                          "Label each explanation with the graph title as a bold heading.",
+                          "For EVERY graph or diagram, use a bold heading for its title, then write: "
+                          "(1) one sentence stating what the graph represents overall, "
+                          "(2) what the axes represent, (3) the shape and trend of the curve(s), "
+                          "(4) key data points or inflection points, "
+                          "(5) what the graph demonstrates scientifically.",
                     extra="Do NOT produce any mermaid or code blocks for graphs. Double-check all LaTeX syntax."
                 )
         elif assessment.has_math and assessment.quality == "good":
@@ -286,15 +287,16 @@ Flag is_safe as false ONLY if the image clearly shows:
                           "For x-y scientific plots use ```mermaid\nxychart-beta``` with format:\n"
                           "xychart-beta\ntitle \"Name\"\nx-axis [0,1,2,3,4,5,6,7,8,9,10,11]\ny-axis \"label\" 0 --> 100\nline [0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11]\n"
                           "RULES: ALWAYS start from origin (x=0, y=0). Use 12 points for smooth curves. x-axis integers only, no subscripts or special chars.",
-                    extra="Every diagram MUST be a mermaid block. No plain text diagram descriptions."
+                    extra="After each mermaid block write one italic sentence starting with 'This graph shows...' explaining what the graph represents and its key takeaway. Every diagram MUST be a mermaid block."
                 )
             else:
                 prompt = _build_prompt(
                     focus="The notes contain diagrams, graphs, or flowcharts. "
-                          "For each diagram or graph, write a clear prose paragraph with a bold heading for its title. "
-                          "Explain: what the diagram shows, all labelled components, arrows and relationships, "
-                          "and what it illustrates conceptually. For plots, describe axis labels, "
-                          "curve shape, trend, and key takeaway.",
+                          "For each diagram or graph, use a bold heading for its title, then write: "
+                          "(1) one sentence stating what the graph represents overall, "
+                          "(2) what the axes or components represent, (3) the shape/trend/relationships, "
+                          "(4) key data points or nodes, "
+                          "(5) what it illustrates conceptually or scientifically.",
                     extra="Do NOT produce any mermaid or code blocks. Describe everything in structured Markdown prose."
                 )
         elif assessment.handwriting_density == "sparse":
