@@ -796,7 +796,7 @@ mermaid.run().catch(function() {{
 }});
 </script>
 </body></html>"""
-                        components.html(mermaid_html, height=380, scrolling=True)
+                    components.html(mermaid_html, height=380, scrolling=True)
 
         _render_with_mermaid(result.refined_markdown)
 
