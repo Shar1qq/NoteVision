@@ -249,18 +249,17 @@ Flag is_safe as false ONLY if the image clearly shows:
                           "RULES: ALWAYS start from origin (x=0, y=0). Use 12 points for smooth curves. "
                           "x-axis must be plain integers only. No subscripts (write T1 not T\u2081), no Greek letters, no special chars in labels. "
                           "For two curves on the same graph, add a second 'line' entry with its own 12 values starting from 0.",
-                    extra="After each mermaid block write one italic sentence starting with 'This graph shows...' explaining what the graph represents scientifically and its key takeaway. Double-check all LaTeX syntax."
+                    extra="After each mermaid block write one italic sentence starting with 'This graph shows...' explaining what the graph represents scientifically and its key takeaway. Double-check all LaTeX syntax.",
+                    diagram_mode=True
                 )
             else:
                 prompt = _build_prompt(
                     focus="The notes contain BOTH mathematical content AND scientific graphs or diagrams. "
                           "Render ALL math as LaTeX (inline $ or block $$). "
-                          "For EVERY graph or diagram, use a bold heading for its title, then write: "
-                          "(1) one sentence stating what the graph represents overall, "
-                          "(2) what the axes represent, (3) the shape and trend of the curve(s), "
-                          "(4) key data points or inflection points, "
-                          "(5) what the graph demonstrates scientifically.",
-                    extra="Do NOT produce any mermaid or code blocks for graphs. Double-check all LaTeX syntax."
+                          "For EVERY graph or diagram, use a bold heading for its title, then write a prose description covering: "
+                          "what the graph represents, what the axes show, the shape/trend of each curve, key data points, and the scientific conclusion.",
+                    extra="Double-check all LaTeX syntax.",
+                    diagram_mode=False
                 )
         elif assessment.has_math and assessment.quality == "good":
             strategy = "math_focused"
@@ -268,7 +267,8 @@ Flag is_safe as false ONLY if the image clearly shows:
                 focus="Pay special attention to every mathematical formula, equation, "
                       "and symbol. Render ALL math as LaTeX (inline $ or block $$). "
                       "Be extremely precise with superscripts, subscripts, Greek letters.",
-                extra="Double-check all LaTeX syntax for correctness."
+                extra="Double-check all LaTeX syntax for correctness.",
+                diagram_mode=diagram_mode
             )
         elif assessment.quality == "poor" or assessment.estimated_confidence < 0.4:
             strategy = "careful_reconstruction"
@@ -276,7 +276,8 @@ Flag is_safe as false ONLY if the image clearly shows:
                 focus="The image quality is low. Do your best to infer unclear text "
                       "from context. Mark any uncertain word with (?). Prefer accuracy "
                       "over completeness.",
-                extra="Insert [ILLEGIBLE] for sections you cannot interpret at all."
+                extra="Insert [ILLEGIBLE] for sections you cannot interpret at all.",
+                diagram_mode=diagram_mode
             )
         elif assessment.has_diagrams:
             strategy = "structure_aware"
@@ -287,28 +288,28 @@ Flag is_safe as false ONLY if the image clearly shows:
                           "For x-y scientific plots use ```mermaid\nxychart-beta``` with format:\n"
                           "xychart-beta\ntitle \"Name\"\nx-axis [0,1,2,3,4,5,6,7,8,9,10,11]\ny-axis \"label\" 0 --> 100\nline [0,v1,v2,v3,v4,v5,v6,v7,v8,v9,v10,v11]\n"
                           "RULES: ALWAYS start from origin (x=0, y=0). Use 12 points for smooth curves. x-axis integers only, no subscripts or special chars.",
-                    extra="After each mermaid block write one italic sentence starting with 'This graph shows...' explaining what the graph represents and its key takeaway. Every diagram MUST be a mermaid block."
+                    extra="After each mermaid block write one italic sentence starting with 'This graph shows...' explaining what the graph represents and its key takeaway. Every diagram MUST be a mermaid block.",
+                    diagram_mode=True
                 )
             else:
                 prompt = _build_prompt(
                     focus="The notes contain diagrams, graphs, or flowcharts. "
-                          "For each diagram or graph, use a bold heading for its title, then write: "
-                          "(1) one sentence stating what the graph represents overall, "
-                          "(2) what the axes or components represent, (3) the shape/trend/relationships, "
-                          "(4) key data points or nodes, "
-                          "(5) what it illustrates conceptually or scientifically.",
-                    extra="Do NOT produce any mermaid or code blocks. Describe everything in structured Markdown prose."
+                          "For each diagram or graph, use a bold heading for its title, then write a prose description covering: "
+                          "what it represents, what the axes/components show, the shape/trend/relationships, key data points or nodes, and what it illustrates.",
+                    extra="",
+                    diagram_mode=False
                 )
         elif assessment.handwriting_density == "sparse":
             strategy = "detail_preserving"
             prompt = _build_prompt(
                 focus="The notes are sparse — every word likely matters. Preserve ALL "
                       "content including margin annotations, underlines, and emphasis.",
-                extra="Wrap emphasis in **bold** and use > blockquotes for margin notes."
+                extra="Wrap emphasis in **bold** and use > blockquotes for margin notes.",
+                diagram_mode=diagram_mode
             )
         else:
             strategy = "standard"
-            prompt = _build_prompt(focus="", extra="")
+            prompt = _build_prompt(focus="", extra="", diagram_mode=diagram_mode)
 
         return strategy, prompt
 
@@ -451,8 +452,28 @@ Output ONLY the corrected markdown."""
 # Prompt Builder
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _build_prompt(focus: str, extra: str) -> str:
-    base = """You are an OCR and document-structuring assistant.
+def _build_prompt(focus: str, extra: str, diagram_mode: bool = True) -> str:
+    if diagram_mode:
+        graph_rule = (
+            "- For any x-y graph or scientific plot, generate a ```mermaid\\nxychart-beta``` block. "
+            "Use ONLY this exact format (no subscripts, no special chars, plain ASCII labels):\n"
+            "  xychart-beta\\n  title \"Graph Title\"\\n  x-axis [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]"
+            "\\n  y-axis \"y-label\" 0 --> 100\\n  line [0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11]\\n"
+            "  IMPORTANT: always start from x=0 y=0 (origin). Use 12 points for smooth curves."
+        )
+    else:
+        graph_rule = (
+            "- GRAPH/DIAGRAM RULE (TEXT MODE — STRICTLY ENFORCED):\n"
+            "  * Do NOT draw, sketch, or attempt to represent any graph, chart, or diagram visually.\n"
+            "  * Do NOT produce any code blocks (``` ... ```) for graphs or diagrams — not mermaid, not ASCII art, not any other format.\n"
+            "  * Instead, describe each graph/diagram in plain prose under a bold heading.\n"
+            "  * Your description must cover: (1) what the graph represents, (2) what the axes show, "
+            "(3) the shape/trend of each curve, (4) key data points or intersections, "
+            "(5) the scientific meaning or conclusion.\n"
+            "  * Any attempt to produce an ASCII sketch or code block for a graph is a VIOLATION of these instructions."
+        )
+
+    base = f"""You are an OCR and document-structuring assistant.
 
 Convert this handwritten university note image into a clean, well-structured Markdown document.
 
@@ -463,8 +484,7 @@ Rules:
 - Do NOT summarize or paraphrase
 - Maintain original academic wording
 - Mark unclear content with (?)
-- For any x-y graph or scientific plot, generate a ```mermaid\nxychart-beta``` block. Use ONLY this exact format (no subscripts, no special chars, plain ASCII labels):
-  xychart-beta\n  title "Graph Title"\n  x-axis [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]\n  y-axis "y-label" 0 --> 100\n  line [0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11]\n  IMPORTANT: always start from x=0 y=0 (origin). Use 12 points for smooth curves.
+{graph_rule}
 
 Output only Markdown."""
     if focus:

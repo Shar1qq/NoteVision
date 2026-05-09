@@ -18,7 +18,7 @@ import streamlit as st
 from google import genai
 from google.oauth2 import service_account
 from docx import Document
-from docx.shared import Pt
+from docx.shared import Pt, RGBColor
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import io
 import re
@@ -806,7 +806,23 @@ mermaid.run().catch(function() {{
 </body></html>"""
                     components.html(mermaid_html, height=380, scrolling=True)
 
-        _render_with_mermaid(result.refined_markdown)
+        def _strip_code_blocks_for_text_mode(md_text: str) -> str:
+            """In text mode, remove any code blocks the LLM still generated
+            (mermaid, ASCII art, etc.) since they should not appear."""
+            # Remove mermaid blocks entirely
+            md_text = re.sub(r'```mermaid.*?```', '', md_text, flags=re.DOTALL | re.IGNORECASE)
+            # Remove all other fenced code blocks (LLM ASCII sketches land here)
+            md_text = re.sub(r'```[^\n]*\n.*?```', '', md_text, flags=re.DOTALL)
+            # Collapse excess blank lines left behind
+            md_text = re.sub(r'\n{3,}', '\n\n', md_text)
+            return md_text.strip()
+
+        if is_diagram:
+            _render_with_mermaid(result.refined_markdown)
+        else:
+            clean_md = _strip_code_blocks_for_text_mode(result.refined_markdown)
+            st.markdown(clean_md)
+
 
     with tab_crit:
         refined_used = ("looks complete and accurate" not in result.critique.lower())
@@ -902,31 +918,221 @@ mermaid.run().catch(function() {{
 
         final_md = result.refined_markdown
 
+        # ── LaTeX → readable Unicode helper ────────────────────────────────
+        _LATEX_SYMBOLS = [
+            (r'\longrightarrow', '⟶'), (r'\longleftarrow', '⟵'),
+            (r'\Longrightarrow', '⟹'), (r'\Leftrightarrow', '⟺'),
+            (r'\Rightarrow', '⇒'), (r'\Leftarrow', '⇐'),
+            (r'\rightarrow', '→'), (r'\leftarrow', '←'),
+            (r'\leftrightarrow', '↔'), (r'\implies', '⟹'),
+            (r'\Delta', 'Δ'), (r'\delta', 'δ'), (r'\Alpha', 'Α'), (r'\alpha', 'α'),
+            (r'\Beta', 'Β'), (r'\beta', 'β'), (r'\Gamma', 'Γ'), (r'\gamma', 'γ'),
+            (r'\Theta', 'Θ'), (r'\theta', 'θ'), (r'\Lambda', 'Λ'), (r'\lambda', 'λ'),
+            (r'\Sigma', 'Σ'), (r'\sigma', 'σ'), (r'\Omega', 'Ω'), (r'\omega', 'ω'),
+            (r'\Phi', 'Φ'), (r'\phi', 'φ'), (r'\varphi', 'φ'), (r'\Pi', 'Π'), (r'\pi', 'π'),
+            (r'\mu', 'μ'), (r'\nu', 'ν'), (r'\xi', 'ξ'), (r'\Xi', 'Ξ'),
+            (r'\rho', 'ρ'), (r'\tau', 'τ'), (r'\eta', 'η'), (r'\kappa', 'κ'),
+            (r'\epsilon', 'ε'), (r'\varepsilon', 'ε'), (r'\zeta', 'ζ'), (r'\iota', 'ι'),
+            (r'\upsilon', 'υ'), (r'\chi', 'χ'), (r'\psi', 'ψ'),
+            (r'\times', '×'), (r'\cdot', '·'), (r'\div', '÷'), (r'\pm', '±'),
+            (r'\leq', '≤'), (r'\geq', '≥'), (r'\neq', '≠'), (r'\approx', '≈'),
+            (r'\equiv', '≡'), (r'\propto', '∝'), (r'\infty', '∞'),
+            (r'\partial', '∂'), (r'\nabla', '∇'), (r'\int', '∫'),
+            (r'\sum', 'Σ'), (r'\prod', 'Π'), (r'\sqrt', '√'),
+            (r'\in', '∈'), (r'\notin', '∉'), (r'\subset', '⊂'), (r'\supset', '⊃'),
+            (r'\cup', '∪'), (r'\cap', '∩'), (r'\forall', '∀'), (r'\exists', '∃'),
+            (r'\circ', '∘'), (r'\perp', '⊥'), (r'\parallel', '∥'),
+            (r'\angle', '∠'), (r'\therefore', '∴'), (r'\because', '∵'),
+        ]
+
+        def _latex_to_unicode(latex: str) -> str:
+            """Convert LaTeX math string to a readable Unicode representation."""
+            t = latex
+            # ── structured constructs first ──────────────────────────────
+            # \frac{a}{b} → (a)/(b)
+            t = re.sub(r'\\frac\{([^}]*)\}\{([^}]*)\}', r'(\1)/(\2)', t)
+            # \sqrt{x} → √(x)
+            t = re.sub(r'\\sqrt\{([^}]*)\}', r'√(\1)', t)
+            # \boxed{x} → [x]
+            t = re.sub(r'\\boxed\{([^}]*)\}', r'[\1]', t)
+            # \text{x} → x
+            t = re.sub(r'\\text\{([^}]*)\}', r'\1', t)
+            # \overline{x} → x + combining overline
+            t = re.sub(r'\\overline\{([^}]*)\}', r'\1' + '\u0305', t)
+
+            # ── subscript / superscript → Unicode ────────────────────────
+            _sub_map  = str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉')
+            _sup_map  = str.maketrans('0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹')
+            # Letter superscripts that Unicode defines
+            _sup_letters = {'a':'ᵃ','b':'ᵇ','c':'ᶜ','d':'ᵈ','e':'ᵉ','f':'ᶠ',
+                            'g':'ᵍ','h':'ʰ','i':'ⁱ','j':'ʲ','k':'ᵏ','l':'ˡ',
+                            'm':'ᵐ','n':'ⁿ','o':'ᵒ','p':'ᵖ','r':'ʳ','s':'ˢ',
+                            't':'ᵗ','u':'ᵘ','v':'ᵛ','w':'ʷ','x':'ˣ','y':'ʸ',
+                            'z':'ᶻ','+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾'}
+            # Letter subscripts that Unicode defines
+            _sub_letters = {'a':'ₐ','e':'ₑ','i':'ᵢ','j':'ⱼ','o':'ₒ','r':'ᵣ',
+                            'u':'ᵤ','v':'ᵥ','x':'ₓ','+':'₊','-':'₋','=':'₌',
+                            '(':'₍',')':'₎','n':'ₙ','m':'ₘ','p':'ₚ','s':'ₛ',
+                            't':'ₜ','k':'ₖ','l':'ₗ','h':'ₕ'}
+
+            def _convert_script(s: str, digit_map, letter_map: dict, fallback_prefix: str) -> str:
+                """Convert a subscript/superscript string to Unicode or fallback."""
+                result = []
+                for ch in s:
+                    if ch.isdigit():
+                        result.append(ch.translate(digit_map))
+                    elif ch in letter_map:
+                        result.append(letter_map[ch])
+                    else:
+                        # Can't convert cleanly — use fallback notation
+                        return f'{fallback_prefix}({s})'
+                return ''.join(result)
+
+            # Handle braced forms: x_{abc} and x^{abc}
+            def _replace_sub(m):  return _convert_script(m.group(1), _sub_map, _sub_letters, '_')
+            def _replace_sup(m):  return _convert_script(m.group(1), _sup_map, _sup_letters, '^')
+            t = re.sub(r'_\{([^}]*)\}', _replace_sub, t)
+            t = re.sub(r'\^\{([^}]*)\}', _replace_sup, t)
+            # Handle bare single-char forms: x_2  x_n  x^2  x^n
+            t = re.sub(r'_([0-9a-zA-Z])', lambda m: _convert_script(m.group(1), _sub_map, _sub_letters, '_'), t)
+            t = re.sub(r'\^([0-9a-zA-Z])', lambda m: _convert_script(m.group(1), _sup_map, _sup_letters, '^'), t)
+
+            # ── symbol substitution ───────────────────────────────────────
+            # \left and \right — remove
+            t = re.sub(r'\\(left|right)\s*', '', t)
+            for cmd, uni in _LATEX_SYMBOLS:
+                t = t.replace(cmd, uni)
+            # Remove any remaining backslash commands
+            t = re.sub(r'\\[a-zA-Z]+\*?', '', t)
+            # Clean up stray braces
+            t = t.replace('{', '').replace('}', '')
+            return t.strip()
+
+        # ── Inline markdown tokeniser ───────────────────────────────────────
+        def _tokenise_inline(text: str):
+            tokens = []
+            pattern = re.compile(
+                r'(\$\$.*?\$\$)'            # $$block math$$
+                r'|(\$[^$\n]+?\$)'           # $inline math$
+                r'|(`[^`]+`)'                # `code`
+                r'|(\*\*\*[^*]+\*\*\*)'     # ***bold italic***
+                r'|(\*\*[^*]+\*\*)'          # **bold**
+                r'|(\*[^*\n]+\*)'            # *italic*
+                r'|(_[^_\n]+_)',             # _italic_
+                re.DOTALL
+            )
+            last = 0
+            for m in pattern.finditer(text):
+                s, e = m.start(), m.end()
+                if s > last:
+                    tokens.append({'text': text[last:s], 'bold': False, 'italic': False, 'code': False, 'math': None})
+                g = m.group()
+                if m.group(1):    tokens.append({'text': '', 'bold': False, 'italic': False, 'code': False, 'math': g[2:-2].strip()})
+                elif m.group(2):  tokens.append({'text': '', 'bold': False, 'italic': False, 'code': False, 'math': g[1:-1].strip()})
+                elif m.group(3):  tokens.append({'text': g[1:-1], 'bold': False, 'italic': False, 'code': True,  'math': None})
+                elif m.group(4):  tokens.append({'text': g[3:-3], 'bold': True,  'italic': True,  'code': False, 'math': None})
+                elif m.group(5):  tokens.append({'text': g[2:-2], 'bold': True,  'italic': False, 'code': False, 'math': None})
+                elif m.group(6):  tokens.append({'text': g[1:-1], 'bold': False, 'italic': True,  'code': False, 'math': None})
+                elif m.group(7):  tokens.append({'text': g[1:-1], 'bold': False, 'italic': True,  'code': False, 'math': None})
+                last = e
+            if last < len(text):
+                tokens.append({'text': text[last:], 'bold': False, 'italic': False, 'code': False, 'math': None})
+            return tokens
+
+        def _fill_para(para, text: str):
+            """Add styled runs to a paragraph, converting math to Unicode."""
+            for tok in _tokenise_inline(text):
+                if tok['math'] is not None:
+                    readable = _latex_to_unicode(tok['math'])
+                    run = para.add_run(readable)
+                    run.font.name = 'Cambria Math'
+                    run.font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)  # Word equation blue
+                elif tok['text']:
+                    run = para.add_run(tok['text'])
+                    run.bold   = tok['bold']
+                    run.italic = tok['italic']
+                    if tok['code']:
+                        run.font.name = 'Courier New'
+                        run.font.size = Pt(9)
+
+        # ── Main DOCX builder ───────────────────────────────────────────────
         def _make_docx(md_text: str) -> bytes:
             doc = Document()
-            t = doc.add_paragraph("Converted Notes")
+
+            # Title
+            t = doc.add_paragraph('Converted Notes')
             t.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
             t.runs[0].font.size = Pt(18)
             t.runs[0].font.bold = True
             doc.add_paragraph()
-            for line in md_text.split("\n"):
-                if line.strip():
-                    if line.startswith("# "):
-                        p = doc.add_paragraph(line[2:])
-                        p.runs[0].font.size = Pt(16)
-                        p.runs[0].font.bold = True
-                    elif line.startswith("## "):
-                        p = doc.add_paragraph(line[3:])
-                        p.runs[0].font.size = Pt(14)
-                        p.runs[0].font.bold = True
-                    elif line.startswith("### "):
-                        p = doc.add_paragraph(line[4:])
-                        p.runs[0].font.size = Pt(12)
-                        p.runs[0].font.bold = True
-                    elif line.strip().startswith(("-", "*")):
-                        doc.add_paragraph(line.strip()[1:].strip(), style="List Bullet")
+
+            # Strip mermaid blocks
+            md_text = re.sub(r'```mermaid.*?```', '[Diagram — see web app]', md_text, flags=re.DOTALL | re.IGNORECASE)
+            # Strip other code fences but keep their content
+            md_text = re.sub(r'```[^\n]*\n(.*?)```', r'\1', md_text, flags=re.DOTALL)
+
+            lines = md_text.split('\n')
+            i = 0
+            while i < len(lines):
+                stripped = lines[i].strip()
+
+                # Block math $$...$$
+                if stripped.startswith('$$'):
+                    latex_parts = []
+                    inner = stripped[2:]
+                    if inner.endswith('$$'):
+                        latex_parts.append(inner[:-2])
+                        i += 1
                     else:
-                        doc.add_paragraph(line)
+                        latex_parts.append(inner)
+                        i += 1
+                        while i < len(lines):
+                            l = lines[i].strip()
+                            i += 1
+                            if l.endswith('$$'):
+                                latex_parts.append(l[:-2])
+                                break
+                            latex_parts.append(l)
+                    latex = ' '.join(latex_parts).strip()
+                    if latex:
+                        p = doc.add_paragraph()
+                        p.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+                        run = p.add_run(_latex_to_unicode(latex))
+                        run.font.name = 'Cambria Math'
+                        run.font.size = Pt(12)
+                        run.font.color.rgb = RGBColor(0x1F, 0x49, 0x7D)
+                    continue
+
+                # Headings
+                if stripped.startswith('#### '):
+                    p = doc.add_paragraph(style='Heading 4'); _fill_para(p, stripped[5:])
+                elif stripped.startswith('### '):
+                    p = doc.add_paragraph(style='Heading 3'); _fill_para(p, stripped[4:])
+                elif stripped.startswith('## '):
+                    p = doc.add_paragraph(style='Heading 2'); _fill_para(p, stripped[3:])
+                elif stripped.startswith('# '):
+                    p = doc.add_paragraph(style='Heading 1'); _fill_para(p, stripped[2:])
+                # Bullets
+                elif re.match(r'^[-*+]\s+', stripped):
+                    p = doc.add_paragraph(style='List Bullet')
+                    _fill_para(p, re.sub(r'^[-*+]\s+', '', stripped))
+                # Numbered list
+                elif re.match(r'^\d+\.\s+', stripped):
+                    p = doc.add_paragraph(style='List Number')
+                    _fill_para(p, re.sub(r'^\d+\.\s+', '', stripped))
+                # HR
+                elif re.match(r'^[-*_]{3,}$', stripped):
+                    doc.add_paragraph('─' * 40)
+                # Blank line
+                elif not stripped:
+                    doc.add_paragraph()
+                # Normal paragraph
+                else:
+                    p = doc.add_paragraph()
+                    _fill_para(p, stripped)
+
+                i += 1
+
             buf = io.BytesIO()
             doc.save(buf)
             buf.seek(0)
