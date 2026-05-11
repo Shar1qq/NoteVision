@@ -308,6 +308,33 @@ st.markdown("""
     font-size: 0.76rem;
     color: #4a5568;
   }
+
+  /* ── Login screen ── */
+  .login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 2.5rem;
+    background: #1e2130;
+    border: 1px solid #2d3250;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+  .login-logo {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+  .login-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+  .login-subtitle {
+    color: #8b949e;
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -336,6 +363,51 @@ if "safety_ack" not in st.session_state:
     st.session_state.safety_ack = False
 if "pending_run" not in st.session_state:
     st.session_state.pending_run = False
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Password Protection
+# ─────────────────────────────────────────────────────────────────────────────
+
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["password"] == st.secrets.get("password", "NoteVision2026"):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # don't store password
+        else:
+            st.session_state["password_correct"] = False
+
+    if st.session_state.get("password_correct"):
+        return True
+
+    # Render login screen
+    st.markdown(f"""
+    <div class="login-container">
+        <div class="login-logo">📝</div>
+        <div class="login-title">NoteVision</div>
+        <div class="login-subtitle">Please enter your password to access the system</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Position the input in a narrow column for better layout
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        st.text_input(
+            "Access Key", 
+            type="password", 
+            on_change=password_entered, 
+            key="password",
+            placeholder="••••••••"
+        )
+        if "password_correct" in st.session_state and not st.session_state["password_correct"]:
+            st.error("😕 Access denied. Please try again.")
+            
+    return False
+
+if not check_password():
+    st.stop()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # API + Agent init
